@@ -1,32 +1,5 @@
 ---
 import Layout from '../Layout.astro';
-import { AuthProvider } from '../authContext.js';
-import LoginForm from '../components/LoginForm.jsx';
-import { useState } from 'react';
-
-// Client-side redirect to prevent server-side issues
-const AuthWrapper = ({ children }) => {
-  const { useState, useEffect } = require('react');
-  const { useAuth } = require('../authContext.js');
-
-  return function ClientAuthWrapper({ children }) {
-    const { isAuthenticated, getRedirectPath, loading } = useAuth();
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-      setIsClient(true);
-    }, []);
-
-    useEffect(() => {
-      if (isClient && !loading && isAuthenticated()) {
-        const redirectPath = getRedirectPath();
-        window.location.href = redirectPath;
-      }
-    }, [isClient, loading, isAuthenticated]);
-
-    return children;
-  };
-};
 ---
 
 <Layout title="Login - DealFlow360">
@@ -45,20 +18,73 @@ const AuthWrapper = ({ children }) => {
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
       <div class="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
-        <Client:only>
-          <AuthProvider>
-            <AuthWrapper>
-              <LoginForm 
-                onSuccess={() => {
-                  // Redirect handled by AuthWrapper
-                }}
-                switchToRegister={() => {
-                  window.location.href = '/register';
-                }}
-              />
-            </AuthWrapper>
-          </AuthProvider>
-        </Client:only>
+        <!-- Simple Login Form -->
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">
+              Email address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="alex@dealflow360.com"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              placeholder="password123"
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Sign in
+            </button>
+          </div>
+
+          <div class="text-center">
+            <a href="/register" class="text-sm text-blue-600 hover:text-blue-800">
+              Need an account? Register here
+            </a>
+          </div>
+        </form>
+
+        <!-- Demo Login Buttons -->
+        <div class="mt-6">
+          <h4 class="text-sm font-medium text-gray-700 mb-3 text-center">Quick Demo Login:</h4>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <button type="button" class="demo-login bg-blue-100 hover:bg-blue-200 text-blue-800 py-2 px-3 rounded text-sm" data-role="Sales Rep">
+              Sales Rep
+            </button>
+            <button type="button" class="demo-login bg-green-100 hover:bg-green-200 text-green-800 py-2 px-3 rounded text-sm" data-role="Sales Manager">
+              Sales Manager
+            </button>
+            <button type="button" class="demo-login bg-purple-100 hover:bg-purple-200 text-purple-800 py-2 px-3 rounded text-sm" data-role="Finance">
+              Finance
+            </button>
+            <button type="button" class="demo-login bg-red-100 hover:bg-red-200 text-red-800 py-2 px-3 rounded text-sm" data-role="Admin">
+              Admin
+            </button>
+            <button type="button" class="demo-login bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-3 rounded text-sm" data-role="Customer">
+              Customer
+            </button>
+          </div>
+        </div>
 
         <div class="mt-8 border-t pt-6">
           <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
@@ -98,6 +124,142 @@ const AuthWrapper = ({ children }) => {
           window.location.href = '/pipeline';
         }
       }
+
+      // Handle form submission
+      const loginForm = document.getElementById('login-form');
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
+          
+          // Show loading state
+          const submitBtn = loginForm.querySelector('button[type="submit"]');
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Signing in...';
+          submitBtn.disabled = true;
+          
+          try {
+            // Try backend login first
+            const response = await fetch('http://localhost:8000/api/auth/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ email, password }),
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              localStorage.setItem('dealflow360_user', JSON.stringify(data.user));
+              localStorage.setItem('dealflow360_token', data.access_token);
+              
+              // Redirect based on role
+              if (data.user.role === 'Customer') {
+                window.location.href = '/portal/quote/1001';
+              } else {
+                window.location.href = '/pipeline';
+              }
+            } else {
+              // Fallback to mock authentication
+              const isCustomer = email.includes('customer') || email.includes('acme');
+              const correctPassword = isCustomer ? 'customer123' : 'password123';
+              
+              if (password === correctPassword) {
+                // Mock user data
+                const mockUser = {
+                  id: 1,
+                  name: email.split('@')[0],
+                  email: email,
+                  role: isCustomer ? 'Customer' : 'Sales Rep'
+                };
+                
+                localStorage.setItem('dealflow360_user', JSON.stringify(mockUser));
+                localStorage.setItem('dealflow360_token', 'mock_token_' + Date.now());
+                
+                // Redirect based on role
+                if (isCustomer) {
+                  window.location.href = '/portal/quote/1001';
+                } else {
+                  window.location.href = '/pipeline';
+                }
+              } else {
+                alert('Invalid credentials. For demo: use password123 for internal users or customer123 for customers.');
+              }
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            alert('Login failed. Using mock authentication for demo.');
+            
+            // Fallback mock login
+            const isCustomer = email.includes('customer') || email.includes('acme');
+            const correctPassword = isCustomer ? 'customer123' : 'password123';
+            
+            if (password === correctPassword) {
+              const mockUser = {
+                id: 1,
+                name: email.split('@')[0],
+                email: email,
+                role: isCustomer ? 'Customer' : 'Sales Rep'
+              };
+              
+              localStorage.setItem('dealflow360_user', JSON.stringify(mockUser));
+              localStorage.setItem('dealflow360_token', 'mock_token_' + Date.now());
+              
+              if (isCustomer) {
+                window.location.href = '/portal/quote/1001';
+              } else {
+                window.location.href = '/pipeline';
+              }
+            } else {
+              alert('Invalid credentials. For demo: use password123 for internal users or customer123 for customers.');
+            }
+          } finally {
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
+        });
+      }
+
+      // Handle demo login buttons
+      document.querySelectorAll('.demo-login').forEach(button => {
+        button.addEventListener('click', () => {
+          const role = button.getAttribute('data-role');
+          let email, password;
+          
+          switch(role) {
+            case 'Sales Rep':
+              email = 'alex@dealflow360.com';
+              password = 'password123';
+              break;
+            case 'Sales Manager':
+              email = 'sarah@dealflow360.com';
+              password = 'password123';
+              break;
+            case 'Finance':
+              email = 'michael@dealflow360.com';
+              password = 'password123';
+              break;
+            case 'Admin':
+              email = 'admin@dealflow360.com';
+              password = 'password123';
+              break;
+            case 'Customer':
+              email = 'contact@acmecorp.com';
+              password = 'customer123';
+              break;
+          }
+          
+          // Auto-fill form
+          document.getElementById('email').value = email;
+          document.getElementById('password').value = password;
+          
+          // Submit form
+          loginForm.dispatchEvent(new Event('submit'));
+        });
+      });
     }
   </script>
 </Layout>

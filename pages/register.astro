@@ -1,12 +1,12 @@
 ---
 import Layout from '../Layout.astro';
-import { AuthProvider } from '../authContext.js';
+import { AuthProvider } from '../authContext.jsx';
 import RegisterForm from '../components/RegisterForm.jsx';
 
 // Client-side redirect component
 const AuthWrapper = ({ children }) => {
   const { useState, useEffect } = require('react');
-  const { useAuth } = require('../authContext.js');
+  const { useAuth } = require('../authContext.jsx');
 
   return function ClientAuthWrapper({ children }) {
     const { isAuthenticated, getRedirectPath, loading } = useAuth();
@@ -44,7 +44,7 @@ const AuthWrapper = ({ children }) => {
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
       <div class="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
-        <Client:only>
+        <div client:only>
           <AuthProvider>
             <AuthWrapper>
               <RegisterForm 
@@ -57,7 +57,7 @@ const AuthWrapper = ({ children }) => {
               />
             </AuthWrapper>
           </AuthProvider>
-        </Client:only>
+        </div>
 
         <div class="mt-8 border-t pt-6">
           <div class="bg-blue-50 border border-blue-200 rounded-md p-4">

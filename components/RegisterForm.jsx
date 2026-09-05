@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../authContext.js';
+import { useAuth } from '../authContext.jsx';
 
 const RegisterForm = ({ onSuccess, switchToLogin }) => {
   const { register } = useAuth();
