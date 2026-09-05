@@ -75,3 +75,11 @@ class SubscriptionPlan(SubscriptionPlanBase):
 
     class Config:
         from_attributes = True
+
+
+# ---------------------------------------------------------------
+#  Split‑fulfillment request schema
+# ---------------------------------------------------------------
+class SplitFulfillmentRequest(BaseModel):
+    """Payload for POST /api/quotations/{id}/split-fulfillment"""
+    manual_override: Optional[bool] = False
