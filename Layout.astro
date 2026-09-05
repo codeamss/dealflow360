@@ -16,6 +16,10 @@ const { title = "DealFlow360" } = Astro.props;
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', system-ui, sans-serif; }
+    .avatar-initials {
+      font-size: 12px;
+      font-weight: 600;
+    }
   </style>
   <script>
     // Function to check authentication status and update UI
@@ -30,15 +34,29 @@ const { title = "DealFlow360" } = Astro.props;
         try {
           const userData = JSON.parse(user);
           const isCustomer = userData.role === 'Customer';
+          const initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+          
+          const roleBadgeColor = {
+            'Customer': 'bg-orange-100 text-orange-700 border-orange-200',
+            'Sales Rep': 'bg-blue-100 text-blue-700 border-blue-200',
+            'Sales Manager': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            'Finance': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            'Admin': 'bg-purple-100 text-purple-700 border-purple-200'
+          }[userData.role] || 'bg-slate-100 text-slate-700 border-slate-200';
           
           userInfoDiv.innerHTML = `
-            <div class="flex items-center space-x-3">
-              <span class="text-sm text-gray-300">${userData.name} (${userData.role})</span>
-              <div class="w-8 h-8 ${isCustomer ? 'bg-orange-500' : 'bg-blue-500'} rounded-full flex items-center justify-center text-white font-bold">
-                ${userData.name.charAt(0)}${userData.name.split(' ')[1]?.charAt(0) || userData.name.charAt(1) || ''}
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-slate-100 border border-slate-200 rounded-full flex items-center justify-center text-slate-700 font-semibold text-sm">
+                  ${initials}
+                </div>
+                <div class="hidden md:block">
+                  <p class="text-sm font-medium text-slate-900">${userData.name}</p>
+                  <span class="text-xs ${roleBadgeColor.split(' ')[0]} ${roleBadgeColor.split(' ')[1]} ${roleBadgeColor.split(' ')[2]} px-2 py-0.5 rounded-full border">${userData.role}</span>
+                </div>
               </div>
-              <button onclick="logout()" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition">
-                Logout
+              <button onclick="logout()" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-medium rounded-lg shadow-sm transition-all">
+                Sign out
               </button>
             </div>
           `;
@@ -62,15 +80,15 @@ const { title = "DealFlow360" } = Astro.props;
           
         } catch (e) {
           userInfoDiv.innerHTML = `
-            <a href="/login" class="px-3 py-2 text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors rounded-md">
-              Sign In
+            <a href="/login" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm active:scale-[0.98] transition-all">
+              Sign in
             </a>
           `;
         }
       } else {
         userInfoDiv.innerHTML = `
-          <a href="/login" class="px-3 py-2 text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors rounded-md">
-            Sign In
+          <a href="/login" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm active:scale-[0.98] transition-all">
+            Sign in
           </a>
         `;
       }
@@ -83,21 +101,26 @@ const { title = "DealFlow360" } = Astro.props;
     }
   </script>
 </head>
-<body class="min-h-screen bg-gray-50">
-  <nav class="bg-gray-900 text-white shadow-lg">
+<body class="min-h-screen bg-slate-50">
+  <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
-          <div class="text-xl font-bold text-white">DealFlow360</div>
-          <div class="ml-10 flex items-baseline space-x-4">
-            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors">Quotations</a>
-            <a href="/pipeline" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors">Pipeline</a>
-            <a href="/quotation/new" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors">New Quote</a>
-            <a href="/settings" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-700 hover:text-white transition-colors">Settings</a>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-lg flex items-center justify-center">
+              <span class="text-white font-bold text-sm">DF</span>
+            </div>
+            <span class="text-xl font-bold text-slate-900">DealFlow360</span>
+          </div>
+          <div class="ml-10 hidden md:flex items-baseline gap-2">
+            <a href="/" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">Dashboard</a>
+            <a href="/pipeline" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">Pipeline</a>
+            <a href="/quotation/new" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">New Quote</a>
+            <a href="/settings" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">Settings</a>
           </div>
         </div>
-        <div class="flex items-center space-x-4" id="userInfo">
-          <span class="text-sm text-gray-300">Loading...</span>
+        <div class="flex items-center" id="userInfo">
+          <span class="text-sm text-slate-400">Loading...</span>
         </div>
       </div>
     </div>
@@ -107,9 +130,18 @@ const { title = "DealFlow360" } = Astro.props;
     <slot />
   </main>
 
-  <footer class="bg-gray-100 border-t mt-12 py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600 text-sm">
-      © 2026 DealFlow360 B2B Sales Platform. All rights reserved.
+  <footer class="mt-12 py-6 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-slate-600 text-sm">
+          © 2026 DealFlow360 B2B Sales Platform. All rights reserved.
+        </div>
+        <div class="flex gap-6">
+          <a href="#" class="text-slate-500 hover:text-slate-700 text-sm transition-colors">Terms</a>
+          <a href="#" class="text-slate-500 hover:text-slate-700 text-sm transition-colors">Privacy</a>
+          <a href="#" class="text-slate-500 hover:text-slate-700 text-sm transition-colors">Support</a>
+        </div>
+      </div>
     </div>
   </footer>
   

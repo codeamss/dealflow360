@@ -107,76 +107,76 @@ export default function ApprovalPanel() {
   const riskLevel = getRiskLevel();
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="space-y-8">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Approval Panel</h2>
-            <p className="text-gray-600">Review and approve quotations with risk assessment</p>
+            <h2 className="text-2xl font-bold text-slate-900">Approval Panel</h2>
+            <p className="text-slate-600 text-sm mt-1">Review and approve quotations with risk assessment</p>
           </div>
-          <div className={`px-4 py-2 rounded-full font-medium ${getStatusColor()}`}>
+          <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor().replace('bg-', 'bg-').replace('text-', 'text-')} border-slate-200`}>
             {status}
           </div>
         </div>
 
         {/* Risk Assessment */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-gray-900">Risk Assessment</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="font-semibold text-slate-900 text-lg">Risk Assessment</h3>
             <button
               onClick={calculateRisk}
-              className="px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm font-medium"
+              className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-medium rounded-lg shadow-sm transition-all"
             >
               Recalculate Risk
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="text-4xl font-bold text-gray-900 mb-2">{riskScore}%</div>
-              <div className={`px-3 py-1 rounded-full font-medium inline-block ${riskLevel.color}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="text-center p-6 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+              <div className="text-5xl font-bold text-slate-900 mb-3">{riskScore}%</div>
+              <div className={`px-4 py-2 rounded-full text-sm font-medium border mb-4 ${riskLevel.color.replace('bg-', 'bg-').replace('text-', 'text-')} border-slate-200`}>
                 {riskLevel.level} Risk
               </div>
-              <div className="mt-4 text-sm text-gray-600">
+              <div className="text-sm text-slate-600">
                 Blended risk score across all quotation lines
               </div>
             </div>
             
-            <div className="md:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-5">
               <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700">Discount Risk</span>
-                  <span className="font-medium">{Math.min(riskScore + 10, 100)}%</span>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-700 font-medium">Discount Risk</span>
+                  <span className="font-semibold text-slate-900">{Math.min(riskScore + 10, 100)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 rounded-full h-2">
                   <div 
-                    className="bg-yellow-500 h-2 rounded-full" 
+                    className="bg-amber-500 h-2 rounded-full" 
                     style={{ width: `${Math.min(riskScore + 10, 100)}%` }}
                   ></div>
                 </div>
               </div>
               
               <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700">Customer Credit</span>
-                  <span className="font-medium">{Math.max(100 - riskScore, 0)}%</span>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-700 font-medium">Customer Credit</span>
+                  <span className="font-semibold text-slate-900">{Math.max(100 - riskScore, 0)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 rounded-full h-2">
                   <div 
-                    className="bg-green-500 h-2 rounded-full" 
+                    className="bg-emerald-500 h-2 rounded-full" 
                     style={{ width: `${Math.max(100 - riskScore, 0)}%` }}
                   ></div>
                 </div>
               </div>
               
               <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-700">Margin Safety</span>
-                  <span className="font-medium">{Math.max(80 - riskScore, 0)}%</span>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-slate-700 font-medium">Margin Safety</span>
+                  <span className="font-semibold text-slate-900">{Math.max(80 - riskScore, 0)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-slate-200 rounded-full h-2">
                   <div 
-                    className="bg-blue-500 h-2 rounded-full" 
+                    className="bg-indigo-500 h-2 rounded-full" 
                     style={{ width: `${Math.max(80 - riskScore, 0)}%` }}
                   ></div>
                 </div>
@@ -187,16 +187,16 @@ export default function ApprovalPanel() {
 
         {/* Approval Actions */}
         <div className="mb-8">
-          <h3 className="font-semibold text-gray-900 mb-4">Approval Actions</h3>
+          <h3 className="font-semibold text-slate-900 text-lg mb-5">Approval Actions</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
             <button
               onClick={handleApprove}
               disabled={status === "Approved"}
-              className={`px-6 py-4 rounded-lg font-medium flex items-center justify-center ${
+              className={`px-6 py-4 rounded-xl font-medium flex items-center justify-center transition-all ${
                 status === "Approved"
-                  ? 'bg-green-100 text-green-800 cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.98]'
               }`}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,7 +207,7 @@ export default function ApprovalPanel() {
             
             <button
               onClick={handleReturn}
-              className="px-6 py-4 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg hover:bg-yellow-100 font-medium flex items-center justify-center"
+              className="px-6 py-4 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl font-medium flex items-center justify-center shadow-sm transition-all"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -218,10 +218,10 @@ export default function ApprovalPanel() {
             <button
               onClick={() => document.getElementById('reject-modal').classList.remove('hidden')}
               disabled={status === "Rejected"}
-              className={`px-6 py-4 rounded-lg font-medium flex items-center justify-center ${
+              className={`px-6 py-4 rounded-xl font-medium flex items-center justify-center transition-all ${
                 status === "Rejected"
-                  ? 'bg-red-100 text-red-800 cursor-not-allowed'
-                  : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                  ? 'bg-rose-50 text-rose-700 border border-rose-200 cursor-not-allowed'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm'
               }`}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,22 +232,23 @@ export default function ApprovalPanel() {
           </div>
 
           {/* Rejection Modal */}
-          <div id="reject-modal" className="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reject Quotation</h3>
+          <div id="reject-modal" className="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-6 border w-96 shadow-2xl rounded-xl bg-white border-slate-200">
+              <div className="mt-2">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4">Reject Quotation</h3>
                 <div className="mt-2">
                   <textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
-                    placeholder="Please provide a reason for rejection..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 h-32"
+                    placeholder="Please provide a detailed reason for rejection..."
+                    className="w-full px-3 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 placeholder:text-slate-400 text-sm"
+                    rows={4}
                   />
                 </div>
-                <div className="flex justify-end space-x-3 mt-6">
+                <div className="flex justify-end gap-3 mt-6">
                   <button
                     onClick={() => document.getElementById('reject-modal').classList.add('hidden')}
-                    className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium"
+                    className="px-4 py-2.5 text-slate-700 hover:text-slate-900 text-sm font-medium"
                   >
                     Cancel
                   </button>
@@ -256,7 +257,7 @@ export default function ApprovalPanel() {
                       handleReject();
                       document.getElementById('reject-modal').classList.add('hidden');
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+                    className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-sm active:scale-[0.98] transition-all"
                   >
                     Confirm Reject
                   </button>
@@ -268,45 +269,45 @@ export default function ApprovalPanel() {
 
         {/* Approval Workflow */}
         <div className="mb-8">
-          <h3 className="font-semibold text-gray-900 mb-4">Approval Workflow</h3>
+          <h3 className="font-semibold text-slate-900 text-lg mb-5">Approval Workflow</h3>
           <div className="space-y-4">
-            <div className={`flex items-center justify-between p-4 rounded-lg border ${
-              status === "Approved" ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${
+              status === "Approved" ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-slate-200"
             }`}>
               <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                  status === "Approved" ? "bg-green-100 text-green-600" : "bg-gray-200 text-gray-600"
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 ${
+                  status === "Approved" ? "bg-emerald-100 text-emerald-600" : "bg-slate-200 text-slate-600"
                 }`}>
                   1
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Sales Manager Approval</div>
-                  <div className="text-sm text-gray-600">Required for discounts over 15%</div>
+                  <div className="font-medium text-slate-900">Sales Manager Approval</div>
+                  <div className="text-sm text-slate-600">Required for discounts over 15%</div>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                status === "Approved" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+              <div className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                status === "Approved" ? "bg-emerald-100 text-emerald-700 border-emerald-200" : "bg-slate-100 text-slate-700 border-slate-200"
               }`}>
                 {status === "Approved" ? "✓ Approved" : "Pending"}
               </div>
             </div>
             
-            <div className={`flex items-center justify-between p-4 rounded-lg border ${
-              riskScore > 25 ? "bg-yellow-50 border-yellow-200" : "bg-gray-50 border-gray-200"
+            <div className={`flex items-center justify-between p-4 rounded-xl border ${
+              riskScore > 25 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"
             }`}>
               <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                  riskScore > 25 ? "bg-yellow-100 text-yellow-600" : "bg-gray-200 text-gray-600"
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mr-4 ${
+                  riskScore > 25 ? "bg-amber-100 text-amber-600" : "bg-slate-200 text-slate-600"
                 }`}>
                   2
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900">Finance Department Review</div>
-                  <div className="text-sm text-gray-600">Required when risk score exceeds 25%</div>
+                  <div className="font-medium text-slate-900">Finance Department Review</div>
+                  <div className="text-sm text-slate-600">Required when risk score exceeds 25%</div>
                 </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                riskScore > 25 ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-800"
+              <div className={`px-3 py-1.5 rounded-full text-xs font-medium border ${
+                riskScore > 25 ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-slate-100 text-slate-700 border-slate-200"
               }`}>
                 {riskScore > 25 ? "Required" : "Not Required"}
               </div>
@@ -316,21 +317,21 @@ export default function ApprovalPanel() {
 
         {/* Approval History */}
         <div>
-          <h3 className="font-semibold text-gray-900 mb-4">Approval History</h3>
+          <h3 className="font-semibold text-slate-900 text-lg mb-5">Approval History</h3>
           <div className="space-y-4">
             {approvalLogs.map((log) => (
-              <div key={log.id} className="border-l-4 border-blue-500 pl-4 py-3">
+              <div key={log.id} className="border-l-4 border-indigo-500 pl-4 py-4 bg-gradient-to-r from-white to-slate-50 rounded-r-lg">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-medium text-gray-900">{log.reviewer}</div>
-                    <div className="text-sm text-gray-600">{log.role} • {log.action}</div>
+                    <div className="font-medium text-slate-900 text-sm">{log.reviewer}</div>
+                    <div className="text-xs text-slate-600 mt-1">{log.role} • {log.action}</div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <div className="text-xs text-slate-500">
+                    {new Date(log.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
                 {log.reason && (
-                  <div className="mt-2 text-gray-700 bg-gray-50 p-3 rounded-md">
+                  <div className="mt-3 text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 text-sm">
                     {log.reason}
                   </div>
                 )}

@@ -96,29 +96,29 @@ export default function QuotationBuilder() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="space-y-8">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quotation Builder</h1>
-            <p className="text-gray-600">Create new quotes with real-time margin calculation</p>
+            <h1 className="text-3xl font-bold text-slate-900">Quotation Builder</h1>
+            <p className="text-slate-600 text-sm mt-1">Create new quotes with real-time margin calculation</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-gray-900">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div className={`text-sm font-medium ${liveMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="text-4xl font-bold text-slate-900">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className={`text-sm font-medium mt-1 ${liveMargin >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               Live Margin: ${liveMargin.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
           </div>
         </div>
 
         {/* Product Selection */}
-        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Add Products</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-slate-50 rounded-xl border border-slate-200 p-6 mb-8">
+          <h3 className="font-semibold text-slate-900 text-lg mb-5">Add Products</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <select
               value={selectedProduct}
               onChange={(e) => setSelectedProduct(e.target.value)}
-              className="col-span-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="lg:col-span-2 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm"
             >
               <option value="">Select a product</option>
               {products.map(product => (
@@ -134,7 +134,7 @@ export default function QuotationBuilder() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 text-sm"
                 placeholder="Qty"
               />
             </div>
@@ -147,23 +147,23 @@ export default function QuotationBuilder() {
                 min="0"
                 max="100"
                 step="0.5"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 text-sm"
                 placeholder="Discount %"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500">%</span>
+                <span className="text-slate-500 text-sm">%</span>
               </div>
             </div>
           </div>
           
-          <div className="mt-4 flex justify-end">
+          <div className="mt-5 flex justify-end">
             <button
               onClick={addToCart}
               disabled={!selectedProduct}
-              className={`px-6 py-2 rounded-lg font-medium ${
+              className={`px-6 py-3 rounded-lg font-medium text-sm transition-all ${
                 selectedProduct 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98]' 
+                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
               }`}
             >
               Add to Cart
