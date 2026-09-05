@@ -1,0 +1,14 @@
+﻿# Dependencies
+dist/
+.astro/
+node_modules/.vite/
+node_modules/.astro/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local database & secrets
+dealflow360.db
+.env.local

@@ -4,16 +4,32 @@ from alembic import context
 
 import os
 import sys
+from dotenv import load_dotenv
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Ensure local directory is in path
+current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
+env_db_url = os.getenv("DATABASE_URL")
+if env_db_url:
+    config.set_main_option("sqlalchemy.url", env_db_url)
+
 # add your model's MetaData object here
 # for 'autogenerate' support
-from dealflow360.database import Base
+try:
+    from database import Base
+except ImportError:
+    from dealflow360.database import Base
 
 target_metadata = Base.metadata
 

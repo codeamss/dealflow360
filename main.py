@@ -3,10 +3,15 @@
 # ---------------------------------------------------------------
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime, timedelta
 import calendar
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Direct imports since we're running as a script
 from database import engine, SessionLocal, Base
@@ -48,9 +53,30 @@ app = FastAPI(
 )
 
 # -----------------------------------------------------------------
+# CORS Configuration
+# -----------------------------------------------------------------
+cors_env = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000")
+origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+if "*" not in origins:
+    origins.extend(["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:4321"])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -----------------------------------------------------------------
 # Setup authentication routes
 # -----------------------------------------------------------------
 setup_auth_routes(app)
+
+# -----------------------------------------------------------------
+# Auto-create tables for SQLite / database
+# -----------------------------------------------------------------
+Base.metadata.create_all(bind=engine)
 
 # -----------------------------------------------------------------
 # Helper: get a SQLAlchemy session per request
@@ -63,10 +89,7 @@ def get_db() -> Session:
     finally:
         db.close()
 
-# -----------------------------------------------------------------
-# Optional: create tables on first start (remove after first migration)
-# -----------------------------------------------------------------
-# Base.metadata.create_all(bind=engine)
+
 
 # -----------------------------------------------------------------
 # Helper: stock available for a product in a warehouse

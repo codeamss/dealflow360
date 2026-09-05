@@ -2,153 +2,373 @@
 import Layout from '../Layout.astro';
 ---
 
-<Layout title="DealFlow360 - Settings">
+<Layout title="DealFlow360 - Platform Settings">
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
-        <p class="text-gray-600">Configure your DealFlow360 platform</p>
+        <h1 class="text-2xl font-bold text-slate-900">Platform Governance & Settings</h1>
+        <p class="text-slate-600 text-sm">Configure commercial rules, user permissions, and enterprise integrations</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="save-settings-btn" type="button" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all flex items-center gap-2 active:scale-[0.98]">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Save All Changes
+        </button>
       </div>
     </div>
-    
-    <script>
-      // Check authentication on page load
-      document.addEventListener('DOMContentLoaded', function() {
-        const user = localStorage.getItem('dealflow360_user');
-        const token = localStorage.getItem('dealflow360_token');
-        
-        if (!user || !token) {
-          window.location.href = '/login';
-        } else {
-          // Check if customer is trying to access internal page
-          try {
-            const userData = JSON.parse(user);
-            if (userData.role === 'Customer') {
-              window.location.href = '/portal/quote/1001';
-            }
-          } catch (e) {
-            console.warn('Could not parse user data:', e);
-          }
-        }
-      });
-    </script>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Left sidebar navigation */}
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Left sidebar tab navigation */}
       <div class="lg:col-span-1">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-          <nav class="space-y-1">
-            <a href="#" class="block px-4 py-3 border-l-4 border-blue-500 bg-blue-50 text-blue-700 font-medium">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <nav class="space-y-0.5 p-2" id="settings-nav">
+            <button type="button" data-tab="general" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 bg-indigo-50 text-indigo-700">
+              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
               General Settings
-            </a>
-            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+            </button>
+
+            <button type="button" data-tab="users" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
               User Management
-            </a>
-            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
-              Approval Workflow
-            </a>
-            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
-              Notification Settings
-            </a>
-            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
-              Integration Settings
-            </a>
-            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
-              Billing & Subscription
-            </a>
+            </button>
+
+            <button type="button" data-tab="approvals" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Approval Policy Rules
+            </button>
+
+            <button type="button" data-tab="notifications" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              Notification Hub
+            </button>
+
+            <button type="button" data-tab="integrations" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              ERP & CRM Connectors
+            </button>
+
+            <button type="button" data-tab="billing" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              Billing & Subscriptions
+            </button>
           </nav>
+        </div>
+
+        {/* System Status Mini Box */}
+        <div class="mt-4 p-4 bg-white rounded-xl border border-slate-200 shadow-sm text-xs space-y-2">
+          <div class="flex items-center justify-between font-medium">
+            <span class="text-slate-500">FastAPI Backend</span>
+            <span class="text-emerald-700 font-bold flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
+            </span>
+          </div>
+          <div class="flex items-center justify-between font-medium">
+            <span class="text-slate-500">Database</span>
+            <span class="text-slate-700 font-bold">dealflow360.db</span>
+          </div>
+          <div class="flex items-center justify-between font-medium">
+            <span class="text-slate-500">License Plan</span>
+            <span class="text-indigo-600 font-bold">Enterprise 360</span>
+          </div>
         </div>
       </div>
 
-      {/* Main settings content */}
-      <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
-          
-          <div class="space-y-6">
+      {/* Main Settings Content Panels */}
+      <div class="lg:col-span-3 space-y-6">
+        {/* TAB 1: General Settings */}
+        <div id="tab-content-general" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Enterprise Commercial Profile</h2>
+            <p class="text-xs text-slate-500">Primary legal entity identity and regional currency defaults</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company Legal Name</label>
               <input 
+                id="setting-company"
                 type="text" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value="Acme Corporation"
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                value="DealFlow Enterprise Inc."
               />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Default Currency</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>USD - US Dollar</option>
-                <option>EUR - Euro</option>
-                <option>GBP - British Pound</option>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Commercial Currency</label>
+              <select id="setting-currency" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <option value="USD">USD - US Dollar ($)</option>
+                <option value="EUR">EUR - Euro (€)</option>
+                <option value="GBP">GBP - British Pound (£)</option>
+                <option value="CAD">CAD - Canadian Dollar ($)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Time Zone</label>
-              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>America/New_York (EST)</option>
-                <option>America/Chicago (CST)</option>
-                <option>America/Denver (MST)</option>
-                <option>America/Los_Angeles (PST)</option>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Operational Time Zone</label>
+              <select id="setting-timezone" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <option value="EST">America/New_York (EST / UTC-5)</option>
+                <option value="CST">America/Chicago (CST / UTC-6)</option>
+                <option value="PST">America/Los_Angeles (PST / UTC-8)</option>
+                <option value="UTC">Europe/London (GMT / UTC+0)</option>
               </select>
             </div>
 
-            <div class="flex items-center">
-              <input 
-                type="checkbox" 
-                id="email-notifications"
-                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                checked
-              />
-              <label for="email-notifications" class="ml-2 block text-sm text-gray-700">
-                Enable email notifications for new quotations
-              </label>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Quote Validity Duration</label>
+              <select id="setting-validity" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <option value="15">15 Calendar Days</option>
+                <option value="30" selected>30 Calendar Days (Standard)</option>
+                <option value="60">60 Calendar Days (Enterprise)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 space-y-3">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="setting-tax-auto" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" checked />
+              <span class="text-sm font-medium text-slate-700">Calculate regional sales tax automatically on quote creation (8% baseline)</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="setting-auto-draft" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" checked />
+              <span class="text-sm font-medium text-slate-700">Auto-save in-progress draft quotes to local browser storage every 60 seconds</span>
+            </label>
+          </div>
+        </div>
+
+        {/* TAB 2: User Management */}
+        <div id="tab-content-users" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Commercial Team & Access Hierarchy</h2>
+              <p class="text-xs text-slate-500">Configure role privileges across Sales Rep, Sales Manager, and Director</p>
+            </div>
+            <button type="button" onclick="alert('Invitation link generated and copied to clipboard!')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold border border-indigo-200 transition-colors">
+              + Invite Colleague
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-xs">
+              <thead>
+                <tr class="bg-slate-50">
+                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">User</th>
+                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Email</th>
+                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Role</th>
+                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Approval Tier</th>
+                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-medium">
+                <tr>
+                  <td class="px-4 py-3 text-slate-900 font-bold">Alex Johnson</td>
+                  <td class="px-4 py-3 text-slate-600">alex@company.com</td>
+                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-semibold">Sales Rep</span></td>
+                  <td class="px-4 py-3 text-slate-600">Tier 0 (&le;10% discount)</td>
+                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-slate-900 font-bold">Sarah Chen</td>
+                  <td class="px-4 py-3 text-slate-600">sarah@company.com</td>
+                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-semibold">Sales Manager</span></td>
+                  <td class="px-4 py-3 text-slate-600">Tier 1 (&le;20% discount)</td>
+                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-slate-900 font-bold">Marcus Vance</td>
+                  <td class="px-4 py-3 text-slate-600">marcus@company.com</td>
+                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 font-semibold">Sales Director</span></td>
+                  <td class="px-4 py-3 text-slate-600">Tier 2 (&le;40% discount)</td>
+                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 text-slate-900 font-bold">Elena Rostova</td>
+                  <td class="px-4 py-3 text-slate-600">elena@company.com</td>
+                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">VP Finance</span></td>
+                  <td class="px-4 py-3 text-slate-600">Tier 3 (Executive Sign-off)</td>
+                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* TAB 3: Approval Policy Rules */}
+        <div id="tab-content-approvals" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Governance & Escalation Triggers</h2>
+            <p class="text-xs text-slate-500">Configure thresholds that gate quotation progression before dispatch</p>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-sm text-slate-900">Tier 1: Manager Escalation Threshold</span>
+                <p class="text-xs text-slate-500">Discounts beyond this value require explicit Sales Manager review</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="number" value="12" class="w-16 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
+                <span class="text-xs font-bold text-slate-500">%</span>
+              </div>
             </div>
 
-            <div class="flex items-center">
-              <input 
-                type="checkbox" 
-                id="auto-save"
-                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                checked
-              />
-              <label for="auto-save" class="ml-2 block text-sm text-gray-700">
-                Auto-save draft quotations every 5 minutes
-              </label>
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-sm text-slate-900">Tier 2: VP & Finance Risk Trigger</span>
+                <p class="text-xs text-slate-500">Quotes exceeding this algorithmic risk score require Finance authorization</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="number" value="30" class="w-16 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
+                <span class="text-xs font-bold text-slate-500">% Risk</span>
+              </div>
             </div>
 
-            <div class="pt-4 border-t">
-              <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
-                Save Changes
-              </button>
+            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <span class="font-bold text-sm text-slate-900">High-Value Commercial Ceiling</span>
+                <p class="text-xs text-slate-500">Total quote value triggering automated dual-executive review</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-500">$</span>
+                <input type="number" value="50000" class="w-24 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div class="space-y-4">
-            <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
+        {/* TAB 4: Notifications */}
+        <div id="tab-content-notifications" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Alert Dispatch Matrix</h2>
+            <p class="text-xs text-slate-500">Configure email and real-time dashboard notifications</p>
+          </div>
+
+          <div class="space-y-3 text-sm">
+            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div class="font-semibold text-slate-900">Customer Counter-Offer Submitted</div>
+                <div class="text-xs text-slate-500">Notify account executive immediately when customer posts a revised discount</div>
               </div>
-              <div class="flex-1">
-                <p class="text-sm text-gray-900">Quotation #1004 was approved by Sarah Chen</p>
-                <p class="text-xs text-gray-500">2 hours ago</p>
+              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div class="font-semibold text-slate-900">Executive Approval Request</div>
+                <div class="text-xs text-slate-500">Email managers when a quotation exceeds policy guidelines</div>
               </div>
+              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div class="font-semibold text-slate-900">Customer Portal View Tracking</div>
+                <div class="text-xs text-slate-500">Instant notification when a customer accesses their shared proposal link</div>
+              </div>
+              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <div class="font-semibold text-slate-900">Inventory Allocation Shortage Warnings</div>
+                <div class="text-xs text-slate-500">Alert supply chain coordinator when order lines exceed network stock</div>
+              </div>
+              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
+            </label>
+          </div>
+        </div>
+
+        {/* TAB 5: Integrations */}
+        <div id="tab-content-integrations" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Enterprise Sync Connectors</h2>
+            <p class="text-xs text-slate-500">Connect quotation data directly into CRM, ERP, and accounting ledgers</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
+              <div>
+                <span class="font-bold text-sm text-slate-900">Salesforce CRM</span>
+                <p class="text-xs text-slate-500 mt-0.5">Bi-directional opportunity pipeline sync</p>
+                <span class="inline-block mt-2 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Connected</span>
+              </div>
+              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Configure</button>
             </div>
-            <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+
+            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
+              <div>
+                <span class="font-bold text-sm text-slate-900">SAP S/4HANA ERP</span>
+                <p class="text-xs text-slate-500 mt-0.5">Automated purchase order generation</p>
+                <span class="inline-block mt-2 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Connected</span>
               </div>
-              <div class="flex-1">
-                <p class="text-sm text-gray-900">New quotation #1005 created by Alex Johnson</p>
-                <p class="text-xs text-gray-500">4 hours ago</p>
+              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Configure</button>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
+              <div>
+                <span class="font-bold text-sm text-slate-900">Slack Notifications</span>
+                <p class="text-xs text-slate-500 mt-0.5">Channel alerts for closed deals</p>
+                <span class="inline-block mt-2 text-[11px] font-semibold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">#sales-dealflow</span>
+              </div>
+              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Manage</button>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
+              <div>
+                <span class="font-bold text-sm text-slate-900">REST Webhooks</span>
+                <p class="text-xs text-slate-500 mt-0.5">Event payloads for custom pipelines</p>
+                <span class="inline-block mt-2 text-[11px] font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded">2 Active Endpoints</span>
+              </div>
+              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">View Keys</button>
+            </div>
+          </div>
+        </div>
+
+        {/* TAB 6: Billing */}
+        <div id="tab-content-billing" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Enterprise Subscription & Quotas</h2>
+            <p class="text-xs text-slate-500">Manage seat allocation, add-on features, and corporate invoicing</p>
+          </div>
+
+          <div class="p-5 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-xl text-white">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">Active Commercial Tier</span>
+                <h3 class="text-2xl font-black mt-1">DealFlow360 Enterprise Plan</h3>
+                <p class="text-xs text-slate-300 mt-1">Unlimited quotation volume &bull; Custom approval governance &bull; Dedicated SLA</p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                Active &bull; Annual Billing
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10 text-center">
+              <div>
+                <span class="text-xs text-slate-400">Assigned Seats</span>
+                <p class="text-lg font-bold">24 / 50</p>
+              </div>
+              <div>
+                <span class="text-xs text-slate-400">Quotes Built (Mo.)</span>
+                <p class="text-lg font-bold">142</p>
+              </div>
+              <div>
+                <span class="text-xs text-slate-400">Renewal Date</span>
+                <p class="text-lg font-bold">Sep 1, 2027</p>
               </div>
             </div>
           </div>
@@ -156,4 +376,89 @@ import Layout from '../Layout.astro';
       </div>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. Auth check
+      const userStr = localStorage.getItem('dealflow360_user');
+      const token = localStorage.getItem('dealflow360_token');
+      
+      if (!userStr || !token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === 'Customer') {
+          window.location.href = '/portal/quote/1001';
+          return;
+        }
+      } catch (e) {
+        console.warn('User parsing error:', e);
+      }
+
+      // 2. Tab switching logic
+      const navButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetTab = btn.getAttribute('data-tab');
+
+          // Reset nav styles
+          navButtons.forEach(b => {
+            b.classList.remove('bg-indigo-50', 'text-indigo-700');
+            b.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+            const svg = b.querySelector('svg');
+            if (svg) {
+              svg.classList.remove('text-indigo-600');
+              svg.classList.add('text-slate-400');
+            }
+          });
+
+          // Activate clicked button
+          btn.classList.add('bg-indigo-50', 'text-indigo-700');
+          btn.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+          const activeSvg = btn.querySelector('svg');
+          if (activeSvg) {
+            activeSvg.classList.remove('text-slate-400');
+            activeSvg.classList.add('text-indigo-600');
+          }
+
+          // Toggle tab panels
+          tabContents.forEach(panel => {
+            if (panel.id === `tab-content-${targetTab}`) {
+              panel.classList.remove('hidden');
+            } else {
+              panel.classList.add('hidden');
+            }
+          });
+        });
+      });
+
+      // 3. Save All Changes Button
+      const saveBtn = document.getElementById('save-settings-btn');
+      if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+          const company = (document.getElementById('setting-company') as HTMLInputElement)?.value;
+          const currency = (document.getElementById('setting-currency') as HTMLSelectElement)?.value;
+          const timezone = (document.getElementById('setting-timezone') as HTMLSelectElement)?.value;
+
+          const settingsObj = {
+            company,
+            currency,
+            timezone,
+            updatedAt: new Date().toISOString()
+          };
+
+          localStorage.setItem('dealflow360_settings', JSON.stringify(settingsObj));
+          
+          if ((window as any).showToast) {
+            (window as any).showToast('Platform settings saved successfully', 'success');
+          }
+        });
+      }
+    });
+  </script>
 </Layout>

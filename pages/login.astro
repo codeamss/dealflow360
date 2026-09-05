@@ -2,24 +2,35 @@
 import Layout from '../Layout.astro';
 ---
 
-<Layout title="Login - DealFlow360">
-  <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md">
+<Layout title="Sign In - DealFlow360">
+  <div class="min-h-[calc(100vh-10rem)] w-full flex items-center justify-center py-6">
+    <div class="w-full max-w-md mx-auto px-4">
+      
+      <!-- Brand Header -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-lg mb-6">
-          <span class="text-white font-bold text-xl">DF</span>
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-2xl shadow-lg shadow-indigo-200 mb-4 mx-auto">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
         </div>
-        <h1 class="text-3xl font-bold text-slate-900 mb-2">DealFlow360</h1>
-        <p class="text-slate-600 text-sm">
-          Sign in to your executive B2B sales platform
+        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">DealFlow360</h1>
+        <p class="text-slate-600 text-sm mt-1">
+          Executive B2B Sales Quoting & Pipeline Platform
         </p>
       </div>
 
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
-        <!-- Simple Login Form -->
-        <form id="login-form" class="space-y-5">
+      <!-- Login Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-8">
+        
+        <div id="loginAlert" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span id="loginAlertMsg">Invalid credentials</span>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-4">
           <div>
-            <label for="email" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+            <label for="email" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
               Email address
             </label>
             <input
@@ -27,244 +38,221 @@ import Layout from '../Layout.astro';
               id="email"
               name="email"
               required
-              class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
               placeholder="alex@dealflow360.com"
             />
           </div>
 
           <div>
-            <label for="password" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              Password
-            </label>
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                Password
+              </label>
+              <span class="text-[11px] text-slate-400">Demo: password123</span>
+            </div>
             <input
               type="password"
               id="password"
               name="password"
               required
-              class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400"
-              placeholder="password123"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+              placeholder="••••••••"
             />
           </div>
 
-          <div>
+          <div class="pt-1">
             <button
               type="submit"
-              class="w-full flex justify-center py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm active:scale-[0.98] transition-all"
+              id="submitBtn"
+              class="w-full flex justify-center py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-200 transition-all"
             >
-              Sign in
+              Sign in to Dashboard
             </button>
           </div>
 
           <div class="text-center pt-2">
             <a href="/register" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-              Need an account? Register here
+              Need an internal account? Register here →
             </a>
           </div>
         </form>
 
-        <!-- Demo Login Buttons -->
-        <div class="mt-6 pt-6 border-t border-slate-100">
-          <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 text-center">Quick Demo Login</h4>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <button type="button" class="demo-login bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 px-3 rounded-lg text-sm font-medium transition-all" data-role="Sales Rep">
-              Sales Rep
-            </button>
-            <button type="button" class="demo-login bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 px-3 rounded-lg text-sm font-medium transition-all" data-role="Sales Manager">
-              Sales Manager
-            </button>
-            <button type="button" class="demo-login bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 px-3 rounded-lg text-sm font-medium transition-all" data-role="Finance">
-              Finance
-            </button>
-            <button type="button" class="demo-login bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 px-3 rounded-lg text-sm font-medium transition-all" data-role="Admin">
-              Admin
-            </button>
-            <button type="button" class="demo-login bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 py-2 px-3 rounded-lg text-sm font-medium transition-all" data-role="Customer">
-              Customer
-            </button>
+        <!-- Quick Demo Profiles Section -->
+        <div class="mt-6 pt-5 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Demo Access</span>
+            <span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">1-Click Login</span>
           </div>
-        </div>
 
-        <div class="mt-6 pt-6 border-t border-slate-100">
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-            <h3 class="text-sm font-medium text-slate-800 mb-2">Demo Information</h3>
-            <ul class="space-y-1 text-xs text-slate-600">
-              <li class="flex items-start gap-2">
-                <span class="text-indigo-500">•</span>
-                <span>Use demo buttons for instant access</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-indigo-500">•</span>
-                <span>Internal: email@dealflow360.com / password123</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <span class="text-indigo-500">•</span>
-                <span>Customer: contact@acmecorp.com / customer123</span>
-              </li>
-            </ul>
+          <div class="grid grid-cols-2 gap-2">
+            <button 
+              type="button" 
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              data-role="Sales Rep"
+            >
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Sales Rep</div>
+              <div class="text-[10px] text-slate-500">Alex Johnson</div>
+            </button>
+
+            <button 
+              type="button" 
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              data-role="Sales Manager"
+            >
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Sales Manager</div>
+              <div class="text-[10px] text-slate-500">Sarah Chen</div>
+            </button>
+
+            <button 
+              type="button" 
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              data-role="Finance"
+            >
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Finance Reviewer</div>
+              <div class="text-[10px] text-slate-500">Michael Rodriguez</div>
+            </button>
+
+            <button 
+              type="button" 
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              data-role="Admin"
+            >
+              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">System Admin</div>
+              <div class="text-[10px] text-slate-500">Enterprise Admin</div>
+            </button>
+
+            <button 
+              type="button" 
+              class="demo-login col-span-2 text-left p-2.5 rounded-xl border border-orange-200 bg-orange-50/50 hover:bg-orange-100/70 transition-all group flex items-center justify-between"
+              data-role="Customer"
+            >
+              <div>
+                <div class="text-xs font-semibold text-orange-900">Customer Client Portal</div>
+                <div class="text-[10px] text-orange-700">Acme Corporation (Quote #1001)</div>
+              </div>
+              <span class="text-xs text-orange-600 font-medium">Open Portal →</span>
+            </button>
           </div>
         </div>
       </div>
-      
-      <div class="mt-8 text-center">
-        <p class="text-xs text-slate-400">
-          DealFlow360 v2.0 • {new Date().getFullYear()}
-        </p>
+
+      <div class="mt-6 text-center text-xs text-slate-400">
+        DealFlow360 Enterprise • Release 2.0
       </div>
     </div>
   </div>
 
-  <script>
-    // Client-side redirect for authenticated users
-    if (typeof window !== 'undefined') {
+  <script is:inline>
+    // Client-side redirect if already authenticated
+    (function() {
       const user = localStorage.getItem('dealflow360_user');
       const token = localStorage.getItem('dealflow360_token');
-      
       if (user && token) {
-        // Parse user role for redirect logic
-        const userData = JSON.parse(user);
-        const isCustomer = userData.role === 'Customer';
-        
-        if (isCustomer) {
-          window.location.href = '/portal/quote/1001';
-        } else {
-          window.location.href = '/pipeline';
+        try {
+          const userData = JSON.parse(user);
+          if (userData.role === 'Customer') {
+            window.location.href = '/portal/quote/1001';
+          } else {
+            window.location.href = '/pipeline';
+          }
+        } catch (e) {}
+      }
+    })();
+
+    const loginForm = document.getElementById('login-form');
+    const alertBox = document.getElementById('loginAlert');
+    const alertMsg = document.getElementById('loginAlertMsg');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function showAlert(msg) {
+      if (alertBox && alertMsg) {
+        alertMsg.textContent = msg;
+        alertBox.classList.remove('hidden');
+      }
+    }
+
+    const demoUsers = {
+      'Sales Rep': { id: 1, name: 'Alex Johnson', email: 'alex@dealflow360.com', role: 'Sales Rep' },
+      'Sales Manager': { id: 2, name: 'Sarah Chen', email: 'sarah@dealflow360.com', role: 'Sales Manager' },
+      'Finance': { id: 3, name: 'Michael Rodriguez', email: 'michael@dealflow360.com', role: 'Finance' },
+      'Admin': { id: 4, name: 'Admin User', email: 'admin@dealflow360.com', role: 'Admin' },
+      'Customer': { id: 5, name: 'Acme Corporation', email: 'contact@acmecorp.com', role: 'Customer' }
+    };
+
+    function loginUser(userData) {
+      localStorage.setItem('dealflow360_user', JSON.stringify(userData));
+      localStorage.setItem('dealflow360_token', 'token_' + userData.role.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now());
+
+      if (window.showToast) {
+        window.showToast(`Signed in as ${userData.name} (${userData.role})`, 'success');
+      }
+
+      setTimeout(() => {
+        const dest = userData.role === 'Customer' ? '/portal/quote/1001' : '/pipeline';
+        window.location.href = dest;
+      }, 350);
+    }
+
+    // Handle Quick Demo Buttons
+    document.querySelectorAll('.demo-login').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const role = btn.getAttribute('data-role');
+        const user = demoUsers[role];
+        if (user) {
+          loginUser(user);
         }
-      }
+      });
+    });
 
-      // Handle form submission
-      const loginForm = document.getElementById('login-form');
-      if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          const email = document.getElementById('email').value;
-          const password = document.getElementById('password').value;
-          
-          // Show loading state
-          const submitBtn = loginForm.querySelector('button[type="submit"]');
-          const originalText = submitBtn.textContent;
-          submitBtn.textContent = 'Signing in...';
-          submitBtn.disabled = true;
-          
-          try {
-            // Try backend login first
-            const response = await fetch('http://localhost:8000/api/auth/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ email, password }),
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              localStorage.setItem('dealflow360_user', JSON.stringify(data.user));
-              localStorage.setItem('dealflow360_token', data.access_token);
-              
-              // Redirect based on role
-              if (data.user.role === 'Customer') {
-                window.location.href = '/portal/quote/1001';
-              } else {
-                window.location.href = '/pipeline';
-              }
-            } else {
-              // Fallback to mock authentication
-              const isCustomer = email.includes('customer') || email.includes('acme');
-              const correctPassword = isCustomer ? 'customer123' : 'password123';
-              
-              if (password === correctPassword) {
-                // Mock user data
-                const mockUser = {
-                  id: 1,
-                  name: email.split('@')[0],
-                  email: email,
-                  role: isCustomer ? 'Customer' : 'Sales Rep'
-                };
-                
-                localStorage.setItem('dealflow360_user', JSON.stringify(mockUser));
-                localStorage.setItem('dealflow360_token', 'mock_token_' + Date.now());
-                
-                // Redirect based on role
-                if (isCustomer) {
-                  window.location.href = '/portal/quote/1001';
-                } else {
-                  window.location.href = '/pipeline';
-                }
-              } else {
-                alert('Invalid credentials. For demo: use password123 for internal users or customer123 for customers.');
-              }
-            }
-          } catch (error) {
-            console.error('Login error:', error);
-            alert('Login failed. Using mock authentication for demo.');
-            
-            // Fallback mock login
-            const isCustomer = email.includes('customer') || email.includes('acme');
-            const correctPassword = isCustomer ? 'customer123' : 'password123';
-            
-            if (password === correctPassword) {
-              const mockUser = {
-                id: 1,
-                name: email.split('@')[0],
-                email: email,
-                role: isCustomer ? 'Customer' : 'Sales Rep'
-              };
-              
-              localStorage.setItem('dealflow360_user', JSON.stringify(mockUser));
-              localStorage.setItem('dealflow360_token', 'mock_token_' + Date.now());
-              
-              if (isCustomer) {
-                window.location.href = '/portal/quote/1001';
-              } else {
-                window.location.href = '/pipeline';
-              }
-            } else {
-              alert('Invalid credentials. For demo: use password123 for internal users or customer123 for customers.');
-            }
-          } finally {
-            // Reset button
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-          }
-        });
-      }
+    // Handle Form Submit
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.classList.add('hidden');
 
-      // Handle demo login buttons
-      document.querySelectorAll('.demo-login').forEach(button => {
-        button.addEventListener('click', () => {
-          const role = button.getAttribute('data-role');
-          let email, password;
-          
-          switch(role) {
-            case 'Sales Rep':
-              email = 'alex@dealflow360.com';
-              password = 'password123';
-              break;
-            case 'Sales Manager':
-              email = 'sarah@dealflow360.com';
-              password = 'password123';
-              break;
-            case 'Finance':
-              email = 'michael@dealflow360.com';
-              password = 'password123';
-              break;
-            case 'Admin':
-              email = 'admin@dealflow360.com';
-              password = 'password123';
-              break;
-            case 'Customer':
-              email = 'contact@acmecorp.com';
-              password = 'customer123';
-              break;
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Signing in...';
+        submitBtn.disabled = true;
+
+        try {
+          // Attempt backend authentication
+          const response = await fetch('http://localhost:8000/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            loginUser(data.user);
+            return;
           }
-          
-          // Auto-fill form
-          document.getElementById('email').value = email;
-          document.getElementById('password').value = password;
-          
-          // Submit form
-          loginForm.dispatchEvent(new Event('submit'));
-        });
+        } catch (err) {
+          console.warn('Backend unavailable, trying demo accounts');
+        }
+
+        // Check local demo match
+        const matchingUser = Object.values(demoUsers).find(u => u.email.toLowerCase() === email.toLowerCase());
+        const isCustomer = email.toLowerCase().includes('customer') || email.toLowerCase().includes('acme');
+        const validPassword = isCustomer ? 'customer123' : 'password123';
+
+        if (matchingUser && (password === 'password123' || password === 'customer123')) {
+          loginUser(matchingUser);
+        } else if (password === validPassword) {
+          loginUser({
+            id: Date.now(),
+            name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            email: email,
+            role: isCustomer ? 'Customer' : 'Sales Rep'
+          });
+        } else {
+          showAlert('Invalid credentials. For demo accounts use password: password123 (or customer123 for customer)');
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+        }
       });
     }
   </script>

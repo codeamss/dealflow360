@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function NegotiationBox({ quotationId, isCustomerView = false }) {
+export default function NegotiationBox({ quotationId = 1001, isCustomerView = false }) {
   const [counterDiscount, setCounterDiscount] = useState("");
   const [counterMessage, setCounterMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -8,47 +8,105 @@ export default function NegotiationBox({ quotationId, isCustomerView = false }) 
     {
       id: 1,
       type: "internal",
-      message: "Initial quote sent with 15% discount",
-      discount: 15,
+      message: "Initial formal proposal generated with standard 10% commercial discount.",
+      discount: 10,
       timestamp: "2026-09-04T10:30:00Z",
-      user: "Sales Rep"
+      user: "Alex Johnson (Account Executive)"
     },
     {
       id: 2,
       type: "customer",
-      message: "Can you do 20%? Budget constraints",
-      discount: 20,
+      message: "Our Q3 departmental budget has a ceiling. Could you consider 16% if we execute the agreement before the 15th?",
+      discount: 16,
       timestamp: "2026-09-04T14:45:00Z",
-      user: "Customer"
+      user: isCustomerView ? "You (Customer)" : "Customer Procurement"
     }
   ]);
 
-  const handleSubmitCounter = () => {
+  const storageKey = `dealflow360_negotiations_${quotationId}`;
+
+  // Load persisted negotiations if any
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setNegotiationHistory(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.warn("Could not load negotiation history:", e);
+    }
+  }, [quotationId]);
+
+  const saveHistory = (newHistory) => {
+    setNegotiationHistory(newHistory);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(newHistory));
+    } catch (e) {
+      console.warn("Could not save negotiation history:", e);
+    }
+  };
+
+  const handleSubmitCounter = (e) => {
+    if (e) e.preventDefault();
     if (!counterDiscount || isSubmitting) return;
+
+    const discountVal = parseFloat(counterDiscount);
+    if (isNaN(discountVal) || discountVal < 0 || discountVal > 90) {
+      if (typeof window !== "undefined" && window.showToast) {
+        window.showToast("Please enter a valid discount between 0% and 90%", "error");
+      }
+      return;
+    }
     
     setIsSubmitting(true);
     
-    // In a real app, this would call a negotiation API
     setTimeout(() => {
       const newNegotiation = {
         id: Date.now(),
         type: isCustomerView ? "customer" : "internal",
-        message: counterMessage || `Counter offer: ${counterDiscount}% discount`,
-        discount: parseFloat(counterDiscount),
+        message: counterMessage.trim() || `Proposed revised discount of ${discountVal}%.`,
+        discount: discountVal,
         timestamp: new Date().toISOString(),
-        user: isCustomerView ? "Customer" : "Sales Rep"
+        user: isCustomerView ? "You (Customer Procurement)" : "Sales Directorate"
       };
       
-      setNegotiationHistory([newNegotiation, ...negotiationHistory]);
+      const updated = [newNegotiation, ...negotiationHistory];
+      saveHistory(updated);
       setCounterDiscount("");
       setCounterMessage("");
       setIsSubmitting(false);
-    }, 500);
+
+      if (typeof window !== "undefined" && window.showToast) {
+        window.showToast(
+          isCustomerView 
+            ? `Counter-offer of ${discountVal}% submitted to sales team` 
+            : `Revised discount offer of ${discountVal}% published to customer portal`,
+          "success"
+        );
+      }
+    }, 400);
+  };
+
+  const handleAcceptOffer = (item) => {
+    const confirmMsg = {
+      id: Date.now(),
+      type: "system",
+      message: `Agreement confirmed! ${isCustomerView ? "Customer accepted" : "Sales Directorate ratified"} the ${item.discount}% discount proposal. Order is progressing to fulfillment.`,
+      discount: item.discount,
+      timestamp: new Date().toISOString(),
+      user: "System Confirmation"
+    };
+
+    const updated = [confirmMsg, ...negotiationHistory];
+    saveHistory(updated);
+
+    if (typeof window !== "undefined" && window.showToast) {
+      window.showToast(`Offer of ${item.discount}% discount accepted! Status: Confirmed`, "success");
+    }
   };
 
   const calculateCurrentDiscount = () => {
     if (negotiationHistory.length === 0) return 0;
-    // Return the most recent discount proposal
     return negotiationHistory[0].discount;
   };
 
@@ -61,311 +119,188 @@ export default function NegotiationBox({ quotationId, isCustomerView = false }) 
     });
   };
 
-  const getDiscountColor = (discount) => {
-    if (discount <= 10) return "#2ecc71";
-    if (discount <= 20) return "#f39c12";
-    if (discount <= 30) return "#e67e22";
-    return "#e74c3c";
+  const getDiscountBadgeStyle = (discount) => {
+    if (discount <= 10) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (discount <= 20) return "bg-amber-50 text-amber-700 border-amber-200";
+    return "bg-rose-50 text-rose-700 border-rose-200";
   };
 
+  const quickPresets = [8, 12, 15, 18, 22];
+
   return (
-    <div className="negotiation-box">
-      <div className="negotiation-header">
-        <h3>Negotiation</h3>
-        <div className="current-discount">
-          <span>Current Offer:</span>
-          <div 
-            className="discount-badge"
-            style={{ backgroundColor: getDiscountColor(calculateCurrentDiscount()) }}
-          >
-            {calculateCurrentDiscount()}%
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-slate-900 text-base">Direct Negotiation Channel</h3>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {isCustomerView ? "Customer Portal" : "Internal Sales Desk"}
+            </span>
           </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Exchange counter-proposals and negotiate terms securely in real time
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+          <span className="text-xs font-medium text-slate-500">Active Offer:</span>
+          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getDiscountBadgeStyle(calculateCurrentDiscount())}`}>
+            {calculateCurrentDiscount()}% Off
+          </span>
         </div>
       </div>
 
-      <div className="negotiation-form">
-        <div className="form-group">
-          <label htmlFor="counterDiscount">Counter Discount (%)</label>
-          <input
-            type="number"
-            id="counterDiscount"
-            value={counterDiscount}
-            onChange={(e) => setCounterDiscount(e.target.value)}
-            min="0"
-            max="100"
-            step="0.5"
-            placeholder="Enter discount percentage"
-            disabled={isSubmitting}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="counterMessage">Message (Optional)</label>
-          <textarea
-            id="counterMessage"
-            value={counterMessage}
-            onChange={(e) => setCounterMessage(e.target.value)}
-            placeholder="Add a message to explain your counter offer..."
-            rows={3}
-            disabled={isSubmitting}
-          />
-        </div>
-        
-        <button
-          onClick={handleSubmitCounter}
-          disabled={!counterDiscount || isSubmitting}
-          className="btn-submit"
-        >
-          {isSubmitting ? "Submitting..." : "Submit Counter Offer"}
-        </button>
-      </div>
+      <div className="p-6 space-y-6">
+        {/* Proposal Form */}
+        <form onSubmit={handleSubmitCounter} className="p-5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              {isCustomerView ? "Submit Counter Discount Offer" : "Issue Commercial Counter-Proposal"}
+            </label>
+            
+            {/* Quick chips */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              <span className="text-xs text-slate-400 font-medium mr-1">Quick:</span>
+              {quickPresets.map(preset => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setCounterDiscount(preset.toString())}
+                  className="px-2 py-0.5 text-xs font-medium bg-white hover:bg-slate-200 text-slate-700 rounded border border-slate-200 transition-colors"
+                >
+                  {preset}%
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <div className="negotiation-history">
-        <h4>Negotiation History</h4>
-        {negotiationHistory.length === 0 ? (
-          <p className="no-history">No negotiation history yet.</p>
-        ) : (
-          <div className="history-timeline">
-            {negotiationHistory.map((item) => (
-              <div 
-                key={item.id} 
-                className={`history-item ${item.type}`}
-              >
-                <div className="item-header">
-                  <div className="item-user">
-                    <div className={`user-badge ${item.type}`}>
-                      {item.type === "customer" ? "👤" : "🏢"}
-                    </div>
-                    <span className="user-name">{item.user}</span>
-                  </div>
-                  <div className="item-meta">
-                    <div 
-                      className="item-discount"
-                      style={{ color: getDiscountColor(item.discount) }}
-                    >
-                      {item.discount}%
-                    </div>
-                    <div className="item-time">
-                      {formatDate(item.timestamp)}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="item-message">
-                  {item.message}
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-1">
+              <div className="relative">
+                <input
+                  type="number"
+                  value={counterDiscount}
+                  onChange={(e) => setCounterDiscount(e.target.value)}
+                  min="0"
+                  max="90"
+                  step="0.5"
+                  placeholder="e.g. 15"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  disabled={isSubmitting}
+                />
+                <span className="absolute right-3 top-2 text-xs font-semibold text-slate-400">% off</span>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
 
-      <style jsx>{`
-        .negotiation-box {
-          background: #fff;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 1.5rem;
-          max-width: 600px;
-          margin: 0 auto;
-        }
-        
-        .negotiation-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .current-discount {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        
-        .current-discount span {
-          font-size: 0.875rem;
-          color: #666;
-        }
-        
-        .discount-badge {
-          color: white;
-          padding: 0.25rem 0.75rem;
-          border-radius: 20px;
-          font-weight: 500;
-          font-size: 0.875rem;
-        }
-        
-        .negotiation-form {
-          margin-bottom: 2rem;
-          padding-bottom: 1.5rem;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .form-group {
-          margin-bottom: 1rem;
-        }
-        
-        .form-group label {
-          display: block;
-          margin-bottom: 0.5rem;
-          font-weight: 500;
-          color: #333;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-          width: 100%;
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          font-family: inherit;
-          font-size: 0.875rem;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #3498db;
-          box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-        
-        .btn-submit {
-          background: #2c3e50;
-          color: white;
-          border: none;
-          padding: 0.75rem 2rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 500;
-          width: 100%;
-        }
-        
-        .btn-submit:hover:not(:disabled) {
-          background: #34495e;
-        }
-        
-        .btn-submit:disabled {
-          background: #bdc3c7;
-          cursor: not-allowed;
-        }
-        
-        .negotiation-history h4 {
-          margin-top: 0;
-          margin-bottom: 1rem;
-        }
-        
-        .no-history {
-          text-align: center;
-          padding: 2rem;
-          color: #666;
-          font-style: italic;
-        }
-        
-        .history-timeline {
-          max-height: 400px;
-          overflow-y: auto;
-          padding-right: 0.5rem;
-        }
-        
-        .history-item {
-          padding: 1rem;
-          margin-bottom: 1rem;
-          border-radius: 8px;
-          background: #f8f9fa;
-          border-left: 4px solid #ddd;
-        }
-        
-        .history-item.customer {
-          border-left-color: #3498db;
-          background: #f0f8ff;
-        }
-        
-        .history-item.internal {
-          border-left-color: #2ecc71;
-          background: #f0fff4;
-        }
-        
-        .item-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.5rem;
-        }
-        
-        .item-user {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        
-        .user-badge {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1rem;
-        }
-        
-        .user-badge.customer {
-          background: #ebf5ff;
-          color: #3498db;
-        }
-        
-        .user-badge.internal {
-          background: #ebffeb;
-          color: #2ecc71;
-        }
-        
-        .user-name {
-          font-weight: 500;
-          color: #333;
-        }
-        
-        .item-meta {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          font-size: 0.875rem;
-        }
-        
-        .item-discount {
-          font-weight: 500;
-          font-size: 1rem;
-        }
-        
-        .item-time {
-          color: #666;
-        }
-        
-        .item-message {
-          color: #333;
-          line-height: 1.4;
-        }
-        
-        /* Scrollbar styling */
-        .history-timeline::-webkit-scrollbar {
-          width: 6px;
-        }
-        
-        .history-timeline::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 3px;
-        }
-        
-        .history-timeline::-webkit-scrollbar-thumb {
-          background: #ccc;
-          border-radius: 3px;
-        }
-        
-        .history-timeline::-webkit-scrollbar-thumb:hover {
-          background: #999;
-        }
-      `}</style>
+            <div className="sm:col-span-2">
+              <input
+                type="text"
+                value={counterMessage}
+                onChange={(e) => setCounterMessage(e.target.value)}
+                placeholder="Rationale (e.g. Volume commitment, quarterly budget cap)..."
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <button
+              type="submit"
+              disabled={!counterDiscount || isSubmitting}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center shadow-sm transition-all ${
+                !counterDiscount || isSubmitting
+                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98]"
+              }`}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                  Transmit Counter Offer
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Timeline Log */}
+        <div>
+          <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">
+            Negotiation Audit Stream ({negotiationHistory.length})
+          </h4>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+            {negotiationHistory.map((item) => {
+              const isCust = item.type === "customer";
+              const isSys = item.type === "system";
+
+              return (
+                <div 
+                  key={item.id}
+                  className={`p-4 rounded-xl border transition-all ${
+                    isSys
+                      ? "bg-emerald-50/70 border-emerald-200 text-emerald-900"
+                      : isCust
+                      ? "bg-indigo-50/50 border-indigo-100"
+                      : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        isSys
+                          ? "bg-emerald-200 text-emerald-800"
+                          : isCust
+                          ? "bg-indigo-200 text-indigo-800"
+                          : "bg-slate-200 text-slate-800"
+                      }`}>
+                        {isSys ? "✓" : isCust ? "C" : "S"}
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900">{item.user}</span>
+                        <span className="text-[11px] text-slate-500 ml-2">{formatDate(item.timestamp)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getDiscountBadgeStyle(item.discount)}`}>
+                        {item.discount}%
+                      </span>
+
+                      {!isSys && (
+                        <button
+                          type="button"
+                          onClick={() => handleAcceptOffer(item)}
+                          className="px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded border border-emerald-300 transition-colors"
+                          title="Ratify and accept this discount level"
+                        >
+                          Accept
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-700 leading-relaxed pl-8">
+                    {item.message}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
