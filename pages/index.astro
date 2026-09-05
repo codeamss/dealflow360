@@ -1,0 +1,164 @@
+---
+import Layout from '../Layout.astro';
+import PipelineKanban from '../components/PipelineKanban.jsx';
+---
+
+<Layout title="DealFlow360 - Pipeline">
+  <div class="dashboard">
+    <header>
+      <h1>Sales Pipeline Dashboard</h1>
+      <p>Track and manage all quotations in real-time</p>
+    </header>
+    
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <div class="stat-value">24</div>
+        <div class="stat-label">Active Quotes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">$182,450</div>
+        <div class="stat-label">Total Value</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Pending Approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">In Negotiation</div>
+      </div>
+    </div>
+    
+    <div class="pipeline-section">
+      <PipelineKanban client:load />
+    </div>
+    
+    <div class="quick-actions">
+      <h2>Quick Actions</h2>
+      <div class="actions-grid">
+        <a href="/quotation/new" class="action-card">
+          <div class="action-icon">📝</div>
+          <div class="action-title">New Quotation</div>
+          <div class="action-desc">Create a new quote for a customer</div>
+        </a>
+        <a href="/approvals" class="action-card">
+          <div class="action-icon">✅</div>
+          <div class="action-title">Pending Approvals</div>
+          <div class="action-desc">Review and approve quotes</div>
+        </a>
+        <a href="/fulfillment" class="action-card">
+          <div class="action-icon">🚚</div>
+          <div class="action-title">Fulfillment</div>
+          <div class="action-desc">Manage order fulfillment</div>
+        </a>
+        <a href="/reports" class="action-card">
+          <div class="action-icon">📊</div>
+          <div class="action-title">Sales Reports</div>
+          <div class="action-desc">View performance metrics</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .dashboard {
+      padding: 2rem;
+    }
+    
+    .dashboard header {
+      margin-bottom: 2rem;
+    }
+    
+    .dashboard header h1 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .dashboard header p {
+      color: #666;
+      font-size: 1.125rem;
+    }
+    
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-size: 0.875rem;
+    }
+    
+    .pipeline-section {
+      margin-bottom: 3rem;
+    }
+    
+    .quick-actions {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 2rem;
+    }
+    
+    .quick-actions h2 {
+      margin-bottom: 1.5rem;
+    }
+    
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .action-card {
+      display: block;
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+    }
+    
+    .action-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-color: #2c3e50;
+    }
+    
+    .action-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    
+    .action-title {
+      font-weight: 500;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+    
+    .action-desc {
+      font-size: 0.875rem;
+      color: #666;
+      line-height: 1.4;
+    }
+  </style>
+</Layout>
