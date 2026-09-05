@@ -1,0 +1,159 @@
+---
+import Layout from '../Layout.astro';
+---
+
+<Layout title="DealFlow360 - Settings">
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+        <p class="text-gray-600">Configure your DealFlow360 platform</p>
+      </div>
+    </div>
+    
+    <script>
+      // Check authentication on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        const user = localStorage.getItem('dealflow360_user');
+        const token = localStorage.getItem('dealflow360_token');
+        
+        if (!user || !token) {
+          window.location.href = '/login';
+        } else {
+          // Check if customer is trying to access internal page
+          try {
+            const userData = JSON.parse(user);
+            if (userData.role === 'Customer') {
+              window.location.href = '/portal/quote/1001';
+            }
+          } catch (e) {
+            console.warn('Could not parse user data:', e);
+          }
+        }
+      });
+    </script>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Left sidebar navigation */}
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+          <nav class="space-y-1">
+            <a href="#" class="block px-4 py-3 border-l-4 border-blue-500 bg-blue-50 text-blue-700 font-medium">
+              General Settings
+            </a>
+            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+              User Management
+            </a>
+            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+              Approval Workflow
+            </a>
+            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+              Notification Settings
+            </a>
+            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+              Integration Settings
+            </a>
+            <a href="#" class="block px-4 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium">
+              Billing & Subscription
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main settings content */}
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
+          
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+              <input 
+                type="text" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value="Acme Corporation"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Default Currency</label>
+              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>USD - US Dollar</option>
+                <option>EUR - Euro</option>
+                <option>GBP - British Pound</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Time Zone</label>
+              <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>America/New_York (EST)</option>
+                <option>America/Chicago (CST)</option>
+                <option>America/Denver (MST)</option>
+                <option>America/Los_Angeles (PST)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center">
+              <input 
+                type="checkbox" 
+                id="email-notifications"
+                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                checked
+              />
+              <label for="email-notifications" class="ml-2 block text-sm text-gray-700">
+                Enable email notifications for new quotations
+              </label>
+            </div>
+
+            <div class="flex items-center">
+              <input 
+                type="checkbox" 
+                id="auto-save"
+                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                checked
+              />
+              <label for="auto-save" class="ml-2 block text-sm text-gray-700">
+                Auto-save draft quotations every 5 minutes
+              </label>
+            </div>
+
+            <div class="pt-4 border-t">
+              <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium">
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
+          <div class="space-y-4">
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm text-gray-900">Quotation #1004 was approved by Sarah Chen</p>
+                <p class="text-xs text-gray-500">2 hours ago</p>
+              </div>
+            </div>
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm text-gray-900">New quotation #1005 created by Alex Johnson</p>
+                <p class="text-xs text-gray-500">4 hours ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

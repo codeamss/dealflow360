@@ -1,0 +1,106 @@
+---
+import Layout from '../Layout.astro';
+import { AuthProvider } from '../authContext.js';
+import RegisterForm from '../components/RegisterForm.jsx';
+
+// Client-side redirect component
+const AuthWrapper = ({ children }) => {
+  const { useState, useEffect } = require('react');
+  const { useAuth } = require('../authContext.js');
+
+  return function ClientAuthWrapper({ children }) {
+    const { isAuthenticated, getRedirectPath, loading } = useAuth();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+      if (isClient && !loading && isAuthenticated()) {
+        const redirectPath = getRedirectPath();
+        window.location.href = redirectPath;
+      }
+    }, [isClient, loading, isAuthenticated]);
+
+    return children;
+  };
+};
+---
+
+<Layout title="Register - DealFlow360">
+  <div class="min-h-screen bg-gradient-to-br from-green-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <h1 class="text-center text-4xl font-bold text-blue-800">
+        DealFlow360
+      </h1>
+      <h2 class="mt-2 text-center text-lg font-medium text-gray-600">
+        Create Internal Account
+      </h2>
+      <p class="mt-4 text-center text-sm text-gray-500">
+        Register for internal access to the sales platform
+      </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+      <div class="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+        <Client:only>
+          <AuthProvider>
+            <AuthWrapper>
+              <RegisterForm 
+                onSuccess={() => {
+                  // Redirect handled by AuthWrapper
+                }}
+                switchToLogin={() => {
+                  window.location.href = '/login';
+                }}
+              />
+            </AuthWrapper>
+          </AuthProvider>
+        </Client:only>
+
+        <div class="mt-8 border-t pt-6">
+          <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h3 class="text-sm font-medium text-blue-800 mb-2">About Internal Accounts</h3>
+            <p class="text-xs text-blue-700">
+              • <strong>Sales Rep:</strong> Create and manage quotations<br/>
+              • <strong>Sales Manager:</strong> Approve/reject quotes, oversee pipeline<br/>
+              • <strong>Finance:</strong> Review high-discount quotes, billing schedules<br/>
+              • <strong>Admin:</strong> System configuration, user management<br/>
+              • <strong>Customer portal access:</strong> Separate system - customers should use login page
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <a href="/login" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        ← Back to Login
+      </a>
+      <p class="mt-2 text-xs text-gray-500">
+        DealFlow360 Authentication v1.0 • {new Date().getFullYear()}
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Client-side redirect for authenticated users
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('dealflow360_user');
+      const token = localStorage.getItem('dealflow360_token');
+      
+      if (user && token) {
+        // Parse user role for redirect logic
+        const userData = JSON.parse(user);
+        const isCustomer = userData.role === 'Customer';
+        
+        if (isCustomer) {
+          window.location.href = '/portal/quote/1001';
+        } else {
+          window.location.href = '/pipeline';
+        }
+      }
+    }
+  </script>
+</Layout>

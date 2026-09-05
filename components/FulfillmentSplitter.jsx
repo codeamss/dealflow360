@@ -1,489 +1,451 @@
 import { useState, useEffect } from "react";
+import { warehouses } from "../mockData.js";
 
-export default function FulfillmentSplitter({ quotationId }) {
-  const [splitData, setSplitData] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+export default function FulfillmentSplitter() {
+  const [selectedProduct, setSelectedProduct] = useState("1");
+  const [requestedQuantity, setRequestedQuantity] = useState(25);
   const [manualOverride, setManualOverride] = useState(false);
-  const [customSplit, setCustomSplit] = useState({});
-  const [warehouses, setWarehouses] = useState([
-    { id: 1, name: "Warehouse A", location: "East Coast" },
-    { id: 2, name: "Warehouse B", location: "Midwest" },
-    { id: 3, name: "Warehouse C", location: "West Coast" }
-  ]);
+  const [allocations, setAllocations] = useState({});
+  const [autoSplit, setAutoSplit] = useState([]);
+  const [unmetUnits, setUnmetUnits] = useState(0);
 
+  // Mock products for selection
+  const mockProducts = [
+    { id: "1", name: "Enterprise Server Rack", totalInventory: 55 },
+    { id: "3", name: "Network Switch Pro", totalInventory: 63 },
+    { id: "5", name: "Workstation Laptop", totalInventory: 100 }
+  ];
+
+  // Calculate auto-split whenever product or quantity changes
   useEffect(() => {
-    if (quotationId && !manualOverride) {
-      fetchSplitSuggestion();
+    if (!manualOverride) {
+      calculateAutoSplit();
     }
-  }, [quotationId, manualOverride]);
+  }, [selectedProduct, requestedQuantity, manualOverride]);
 
-  const fetchSplitSuggestion = () => {
-    setIsLoading(true);
-    setError("");
-    
-    fetch(`/api/quotations/${quotationId}/split-fulfillment`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ manual_override: false })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.suggestion && data.suggestion !== "No physical items to split.") {
-          // Parse the suggestion string to extract warehouse quantities
-          const allocations = {};
-          const parts = data.suggestion.split(",");
-          
-          parts.forEach(part => {
-            const match = part.match(/Warehouse\s+([A-C])\((\d+)\)/);
-            if (match) {
-              const warehouseId = match[1].charCodeAt(0) - 64; // A=1, B=2, C=3
-              const quantity = parseInt(match[2]);
-              allocations[warehouseId] = quantity;
-            }
+  // Initialize allocations
+  useEffect(() => {
+    const initialAllocations = {};
+    warehouses.forEach(warehouse => {
+      initialAllocations[warehouse.id] = 0;
+    });
+    setAllocations(initialAllocations);
+  }, []);
+
+  const calculateAutoSplit = () => {
+    const productId = parseInt(selectedProduct);
+    const productInventory = warehouses.map(wh => {
+      const item = wh.inventory.find(inv => inv.product_id === productId);
+      return { warehouseId: wh.id, quantity: item ? item.quantity : 0 };
+    });
+
+    const totalAvailable = productInventory.reduce((sum, item) => sum + item.quantity, 0);
+    const unmet = Math.max(0, requestedQuantity - totalAvailable);
+    setUnmetUnits(unmet);
+
+    // Auto-split logic: allocate proportionally based on inventory
+    const split = [];
+    let remaining = Math.min(requestedQuantity, totalAvailable);
+
+    // First pass: allocate based on proportion
+    productInventory.forEach(item => {
+      if (remaining > 0 && item.quantity > 0) {
+        const proportion = item.quantity / totalAvailable;
+        const allocation = Math.floor(proportion * requestedQuantity);
+        const actualAllocation = Math.min(allocation, item.quantity, remaining);
+        
+        if (actualAllocation > 0) {
+          split.push({
+            warehouseId: item.warehouseId,
+            warehouseName: warehouses.find(w => w.id === item.warehouseId)?.name || `Warehouse ${item.warehouseId}`,
+            quantity: actualAllocation,
+            available: item.quantity
           });
-          
-          setSplitData({
-            ...data,
-            allocations
-          });
-          
-          // Initialize custom split with suggested allocations
-          if (!Object.keys(customSplit).length) {
-            setCustomSplit(allocations);
-          }
-        } else {
-          setSplitData(data);
+          remaining -= actualAllocation;
         }
-      })
-      .catch(err => {
-        setError("Failed to fetch split suggestion");
-        console.error(err);
-      })
-      .finally(() => setIsLoading(false));
+      }
+    });
+
+    // Distribute any remaining units
+    let index = 0;
+    while (remaining > 0 && productInventory.some(item => item.quantity > 0)) {
+      const item = productInventory[index % productInventory.length];
+      if (item.quantity > 0) {
+        const warehouseAllocation = split.find(s => s.warehouseId === item.warehouseId);
+        if (warehouseAllocation && warehouseAllocation.quantity < item.quantity) {
+          warehouseAllocation.quantity += 1;
+          remaining -= 1;
+        }
+      }
+      index++;
+    }
+
+    setAutoSplit(split);
+
+    // Update allocations for manual mode
+    if (!manualOverride) {
+      const newAllocations = {};
+      warehouses.forEach(warehouse => {
+        const allocation = split.find(s => s.warehouseId === warehouse.id);
+        newAllocations[warehouse.id] = allocation ? allocation.quantity : 0;
+      });
+      setAllocations(newAllocations);
+    }
   };
 
-  const handleOverrideToggle = () => {
-    setManualOverride(!manualOverride);
-  };
-
-  const updateCustomAllocation = (warehouseId, quantity) => {
-    const qty = parseInt(quantity) || 0;
-    setCustomSplit(prev => ({
+  const handleAllocationChange = (warehouseId, value) => {
+    const numValue = parseInt(value) || 0;
+    setAllocations(prev => ({
       ...prev,
-      [warehouseId]: qty
+      [warehouseId]: Math.max(0, numValue)
     }));
   };
 
-  const calculateTotalRequested = () => {
-    if (splitData?.details?.total_requested) {
-      return splitData.details.total_requested;
-    }
-    // Fallback calculation
-    return Object.values(customSplit).reduce((sum, qty) => sum + qty, 0);
+  const applyManualSplit = () => {
+    const totalAllocated = Object.values(allocations).reduce((sum, qty) => sum + qty, 0);
+    const unmet = Math.max(0, requestedQuantity - totalAllocated);
+    setUnmetUnits(unmet);
+    console.log("✅ Manual split applied:", allocations);
   };
 
-  const calculateUnmetUnits = () => {
-    const totalAllocated = Object.values(customSplit).reduce((sum, qty) => sum + qty, 0);
-    return calculateTotalRequested() - totalAllocated;
+  const getWarehouseColor = (index) => {
+    const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-amber-500"];
+    return colors[index % colors.length];
   };
 
-  const applyCustomSplit = () => {
-    if (!manualOverride) return;
-    
-    // In a real app, this would send the custom split to the backend
-    const suggestion = warehouses
-      .filter(wh => customSplit[wh.id] > 0)
-      .map(wh => `${wh.name}(${customSplit[wh.id]})`)
-      .join(", ");
-    
-    const unmet = calculateUnmetUnits();
-    
-    setSplitData({
-      quotation_id: quotationId,
-      manual_override: true,
-      suggestion: suggestion || "No allocation",
-      unmet_units: unmet,
-      details: {
-        total_requested: calculateTotalRequested()
-      }
+  const getSelectedProductName = () => {
+    const product = mockProducts.find(p => p.id === selectedProduct);
+    return product ? product.name : "Unknown Product";
+  };
+
+  const getTotalAllocated = () => {
+    return Object.values(allocations).reduce((sum, qty) => sum + qty, 0);
+  };
+
+  const getProductInventory = () => {
+    const productId = parseInt(selectedProduct);
+    let total = 0;
+    warehouses.forEach(warehouse => {
+      const item = warehouse.inventory.find(inv => inv.product_id === productId);
+      if (item) total += item.quantity;
     });
+    return total;
   };
-
-  const getWarehouseColor = (warehouseId) => {
-    const colors = ["#3498db", "#2ecc71", "#e74c3c"];
-    return colors[(warehouseId - 1) % colors.length];
-  };
-
-  const renderAutoSplit = () => {
-    if (!splitData) return null;
-    
-    if (splitData.suggestion === "No physical items to split.") {
-      return (
-        <div className="no-items">
-          <p>{splitData.suggestion}</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="split-visualization">
-        <div className="split-summary">
-          <h4>Suggested Split:</h4>
-          <p className="suggestion-text">{splitData.suggestion}</p>
-          {splitData.unmet_units > 0 && (
-            <div className="unmet-warning">
-              ⚠️ {splitData.unmet_units} units cannot be fulfilled from current inventory
-            </div>
-          )}
-        </div>
-        
-        <div className="warehouse-allocation">
-          <h4>Allocation by Warehouse:</h4>
-          <div className="warehouse-bars">
-            {warehouses.map(warehouse => {
-              const qty = splitData.allocations?.[warehouse.id] || 0;
-              const percentage = (qty / calculateTotalRequested()) * 100 || 0;
-              
-              return (
-                <div key={warehouse.id} className="warehouse-bar">
-                  <div className="warehouse-info">
-                    <span className="warehouse-name">{warehouse.name}</span>
-                    <span className="warehouse-qty">{qty} units</span>
-                  </div>
-                  <div className="bar-container">
-                    <div 
-                      className="bar-fill"
-                      style={{ 
-                        width: `${percentage}%`,
-                        backgroundColor: getWarehouseColor(warehouse.id)
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderManualSplit = () => {
-    return (
-      <div className="manual-split">
-        <div className="split-header">
-          <h4>Manual Allocation</h4>
-          <p>Drag sliders to allocate units to warehouses:</p>
-        </div>
-        
-        <div className="warehouse-controls">
-          {warehouses.map(warehouse => (
-            <div key={warehouse.id} className="warehouse-control">
-              <div className="control-header">
-                <span className="warehouse-name" style={{ color: getWarehouseColor(warehouse.id) }}>
-                  {warehouse.name}
-                </span>
-                <span className="warehouse-location">{warehouse.location}</span>
-              </div>
-              
-              <div className="control-input">
-                <input
-                  type="range"
-                  min="0"
-                  max={calculateTotalRequested()}
-                  value={customSplit[warehouse.id] || 0}
-                  onChange={(e) => updateCustomAllocation(warehouse.id, e.target.value)}
-                />
-                <input
-                  type="number"
-                  min="0"
-                  max={calculateTotalRequested()}
-                  value={customSplit[warehouse.id] || 0}
-                  onChange={(e) => updateCustomAllocation(warehouse.id, e.target.value)}
-                  className="qty-input"
-                />
-                <span className="qty-label">units</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        <div className="allocation-summary">
-          <div className="summary-item">
-            <span>Total Requested:</span>
-            <strong>{calculateTotalRequested()} units</strong>
-          </div>
-          <div className="summary-item">
-            <span>Total Allocated:</span>
-            <strong>{Object.values(customSplit).reduce((sum, qty) => sum + qty, 0)} units</strong>
-          </div>
-          <div className="summary-item" style={{ 
-            color: calculateUnmetUnits() > 0 ? '#e74c3c' : '#27ae60'
-          }}>
-            <span>Unmet Units:</span>
-            <strong>{calculateUnmetUnits()} units</strong>
-          </div>
-        </div>
-        
-        <button 
-          onClick={applyCustomSplit}
-          className="btn-primary"
-        >
-          Apply Custom Split
-        </button>
-      </div>
-    );
-  };
-
-  if (!quotationId) {
-    return (
-      <div className="fulfillment-splitter">
-        <div className="panel-header">
-          <h3>Fulfillment Splitter</h3>
-        </div>
-        <p>Select a quotation to view fulfillment options.</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="fulfillment-splitter">
-      <div className="panel-header">
-        <h3>Fulfillment Splitter - Quotation #{quotationId}</h3>
-        <div className="override-toggle">
-          <label>
-            <input
-              type="checkbox"
-              checked={manualOverride}
-              onChange={handleOverrideToggle}
-            />
-            <span>Manual Override</span>
-          </label>
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Fulfillment Splitter</h2>
+            <p className="text-gray-600">Optimize warehouse allocations for order fulfillment</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <div className="text-sm text-gray-600">Product Inventory</div>
+              <div className="text-lg font-bold text-gray-900">{getProductInventory()} units</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Selection */}
+        <div className="mb-8">
+          <h3 className="font-semibold text-gray-900 mb-4">Product & Quantity</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Product</label>
+              <select
+                value={selectedProduct}
+                onChange={(e) => setSelectedProduct(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {mockProducts.map(product => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} ({product.totalInventory} units available)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Quantity Requested</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={requestedQuantity}
+                  onChange={(e) => setRequestedQuantity(parseInt(e.target.value) || 0)}
+                  min="1"
+                  max={getProductInventory() * 2}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <span className="text-gray-500">units</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Manual Override Toggle */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div>
+              <div className="font-medium text-gray-900">Manual Allocation Override</div>
+              <div className="text-sm text-gray-600">
+                {manualOverride 
+                  ? "Manually adjust warehouse allocations" 
+                  : "Using optimized auto-split based on inventory levels"}
+              </div>
+            </div>
+            <button
+              onClick={() => setManualOverride(!manualOverride)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full ${
+                manualOverride ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+                manualOverride ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Auto Split View */}
+        {!manualOverride && (
+          <div className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4">Optimized Auto-Split</h3>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {autoSplit.map((item, index) => (
+                  <div key={item.warehouseId} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-gray-900">{item.warehouseName}</div>
+                        <div className="text-sm text-gray-600">Available: {item.available} units</div>
+                      </div>
+                      <div className={`px-3 py-1 rounded-full text-sm font-medium ${getWarehouseColor(index)} text-white`}>
+                        {item.quantity} units
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${getWarehouseColor(index)}`}
+                        style={{ width: `${(item.quantity / requestedQuantity) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {((item.quantity / requestedQuantity) * 100).toFixed(0)}% of order
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {unmetUnits > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.948-.833-2.678 0L4.196 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div>
+                      <div className="font-medium text-yellow-800">Inventory Shortage</div>
+                      <div className="text-sm text-yellow-700">
+                        {unmetUnits} units cannot be fulfilled from current inventory. Consider backorder or alternative products.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-gray-600">Requested</div>
+                    <div className="text-2xl font-bold text-gray-900">{requestedQuantity}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Can Be Fulfilled</div>
+                    <div className="text-2xl font-bold text-green-600">{requestedQuantity - unmetUnits}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Unmet Units</div>
+                    <div className={`text-2xl font-bold ${unmetUnits > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      {unmetUnits}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Manual Split View */}
+        {manualOverride && (
+          <div className="mb-8">
+            <h3 className="font-semibold text-gray-900 mb-4">Manual Allocation</h3>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {warehouses.map((warehouse, index) => {
+                  const inventoryItem = warehouse.inventory.find(inv => inv.product_id === parseInt(selectedProduct));
+                  const available = inventoryItem ? inventoryItem.quantity : 0;
+                  const allocated = allocations[warehouse.id] || 0;
+
+                  return (
+                    <div key={warehouse.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <div className="font-semibold text-gray-900">{warehouse.name}</div>
+                          <div className="text-sm text-gray-600">{warehouse.location}</div>
+                          <div className="text-sm text-gray-600">Available: {available} units</div>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getWarehouseColor(index)} text-white`}>
+                          {allocated} units
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Allocate from {warehouse.name}
+                          </label>
+                          <input
+                            type="range"
+                            min="0"
+                            max={available}
+                            value={allocated}
+                            onChange={(e) => handleAllocationChange(warehouse.id, e.target.value)}
+                            className="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={allocated}
+                            onChange={(e) => handleAllocationChange(warehouse.id, e.target.value)}
+                            min="0"
+                            max={available}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <span className="text-gray-500">/ {available}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-gray-600">Requested</div>
+                    <div className="text-2xl font-bold text-gray-900">{requestedQuantity}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Allocated</div>
+                    <div className="text-2xl font-bold text-blue-600">{getTotalAllocated()}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Unmet Units</div>
+                    <div className={`text-2xl font-bold ${unmetUnits > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      {unmetUnits}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Utilization</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      {requestedQuantity > 0 ? ((getTotalAllocated() / requestedQuantity) * 100).toFixed(0) : 0}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={applyManualSplit}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                >
+                  Apply Manual Split
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Warehouse Summary */}
+        <div>
+          <h3 className="font-semibold text-gray-900 mb-4">Warehouse Inventory Summary</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Warehouse</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Server Rack</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Network Switch</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Workstation</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {warehouses.map((warehouse) => {
+                  const serverRack = warehouse.inventory.find(inv => inv.product_id === 1)?.quantity || 0;
+                  const networkSwitch = warehouse.inventory.find(inv => inv.product_id === 3)?.quantity || 0;
+                  const workstation = warehouse.inventory.find(inv => inv.product_id === 5)?.quantity || 0;
+                  const total = serverRack + networkSwitch + workstation;
+                  const status = total > 50 ? "High" : total > 20 ? "Medium" : "Low";
+
+                  return (
+                    <tr key={warehouse.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{warehouse.name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-600">{warehouse.location}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                            <div 
+                              className="bg-blue-500 h-2 rounded-full"
+                              style={{ width: `${(serverRack / 30) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-900">{serverRack}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full"
+                              style={{ width: `${(networkSwitch / 25) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-900">{networkSwitch}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                            <div 
+                              className="bg-purple-500 h-2 rounded-full"
+                              style={{ width: `${(workstation / 50) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-900">{workstation}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          status === "High" ? "bg-green-100 text-green-800" :
+                          status === "Medium" ? "bg-yellow-100 text-yellow-800" :
+                          "bg-red-100 text-red-800"
+                        }`}>
+                          {status} Inventory
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="loading">Calculating optimal split...</div>
-      ) : manualOverride ? (
-        renderManualSplit()
-      ) : (
-        renderAutoSplit()
-      )}
-
-      <style jsx>{`
-        .fulfillment-splitter {
-          background: #fff;
-          border: 1px solid #ddd;
-          border-radius: 8px;
-          padding: 1.5rem;
-          max-width: 800px;
-          margin: 0 auto;
-        }
-        
-        .panel-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1.5rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .override-toggle label {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          cursor: pointer;
-        }
-        
-        .override-toggle input[type="checkbox"] {
-          width: 1.2rem;
-          height: 1.2rem;
-        }
-        
-        .error-message {
-          background: #ffebee;
-          color: #c62828;
-          padding: 0.75rem;
-          border-radius: 4px;
-          margin-bottom: 1rem;
-          border: 1px solid #ffcdd2;
-        }
-        
-        .loading {
-          text-align: center;
-          padding: 2rem;
-          color: #666;
-          font-style: italic;
-        }
-        
-        .no-items {
-          text-align: center;
-          padding: 2rem;
-          background: #f8f9fa;
-          border-radius: 4px;
-        }
-        
-        .split-visualization {
-          margin-top: 1rem;
-        }
-        
-        .split-summary {
-          margin-bottom: 2rem;
-        }
-        
-        .suggestion-text {
-          background: #f8f9fa;
-          padding: 1rem;
-          border-radius: 4px;
-          font-weight: 500;
-          margin: 1rem 0;
-        }
-        
-        .unmet-warning {
-          background: #fff3cd;
-          color: #856404;
-          padding: 0.75rem;
-          border-radius: 4px;
-          border: 1px solid #ffeaa7;
-          margin-top: 1rem;
-        }
-        
-        .warehouse-allocation {
-          margin-top: 2rem;
-        }
-        
-        .warehouse-bars {
-          margin-top: 1rem;
-        }
-        
-        .warehouse-bar {
-          margin-bottom: 1rem;
-        }
-        
-        .warehouse-info {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 0.5rem;
-        }
-        
-        .bar-container {
-          height: 20px;
-          background: #f0f0f0;
-          border-radius: 10px;
-          overflow: hidden;
-        }
-        
-        .bar-fill {
-          height: 100%;
-          transition: width 0.3s ease;
-        }
-        
-        .manual-split {
-          margin-top: 1rem;
-        }
-        
-        .split-header {
-          margin-bottom: 2rem;
-        }
-        
-        .warehouse-controls {
-          display: grid;
-          gap: 1.5rem;
-        }
-        
-        .warehouse-control {
-          padding: 1rem;
-          border: 1px solid #eee;
-          border-radius: 8px;
-          background: #fafafa;
-        }
-        
-        .control-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-        }
-        
-        .warehouse-name {
-          font-weight: 500;
-        }
-        
-        .warehouse-location {
-          font-size: 0.875rem;
-          color: #666;
-        }
-        
-        .control-input {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-        
-        .control-input input[type="range"] {
-          flex: 1;
-        }
-        
-        .qty-input {
-          width: 80px;
-          padding: 0.25rem 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-        }
-        
-        .qty-label {
-          font-size: 0.875rem;
-          color: #666;
-        }
-        
-        .allocation-summary {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1rem;
-          margin: 2rem 0;
-          padding: 1rem;
-          background: #f8f9fa;
-          border-radius: 8px;
-        }
-        
-        .summary-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-        
-        .summary-item span {
-          font-size: 0.875rem;
-          color: #666;
-          margin-bottom: 0.25rem;
-        }
-        
-        .btn-primary {
-          background: #2c3e50;
-          color: white;
-          border: none;
-          padding: 0.75rem 2rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-weight: 500;
-          width: 100%;
-        }
-        
-        .btn-primary:hover {
-          background: #34495e;
-        }
-      `}</style>
     </div>
   );
 }

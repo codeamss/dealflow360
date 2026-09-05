@@ -21,6 +21,7 @@ from models import (
     ApprovalLog,
 )
 from schemas import SplitFulfillmentRequest
+from auth import setup_auth_routes
 
 # -----------------------------------------------------------------
 # FastAPI instance
@@ -30,7 +31,26 @@ app = FastAPI(
     version="0.2.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    openapi_tags=[
+        {
+            "name": "authentication",
+            "description": "User authentication and registration endpoints",
+        },
+        {
+            "name": "quotations",
+            "description": "Quotation management and risk calculation",
+        },
+        {
+            "name": "products",
+            "description": "Product and upsell management",
+        },
+    ]
 )
+
+# -----------------------------------------------------------------
+# Setup authentication routes
+# -----------------------------------------------------------------
+setup_auth_routes(app)
 
 # -----------------------------------------------------------------
 # Helper: get a SQLAlchemy session per request

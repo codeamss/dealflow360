@@ -1,0 +1,103 @@
+---
+import Layout from '../Layout.astro';
+import { AuthProvider } from '../authContext.js';
+import LoginForm from '../components/LoginForm.jsx';
+import { useState } from 'react';
+
+// Client-side redirect to prevent server-side issues
+const AuthWrapper = ({ children }) => {
+  const { useState, useEffect } = require('react');
+  const { useAuth } = require('../authContext.js');
+
+  return function ClientAuthWrapper({ children }) {
+    const { isAuthenticated, getRedirectPath, loading } = useAuth();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+      if (isClient && !loading && isAuthenticated()) {
+        const redirectPath = getRedirectPath();
+        window.location.href = redirectPath;
+      }
+    }, [isClient, loading, isAuthenticated]);
+
+    return children;
+  };
+};
+---
+
+<Layout title="Login - DealFlow360">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+      <h1 class="text-center text-4xl font-bold text-blue-800">
+        DealFlow360
+      </h1>
+      <h2 class="mt-2 text-center text-lg font-medium text-gray-600">
+        B2B Sales Platform
+      </h2>
+      <p class="mt-4 text-center text-sm text-gray-500">
+        Sign in to access your sales pipeline and customer portal
+      </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
+      <div class="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+        <Client:only>
+          <AuthProvider>
+            <AuthWrapper>
+              <LoginForm 
+                onSuccess={() => {
+                  // Redirect handled by AuthWrapper
+                }}
+                switchToRegister={() => {
+                  window.location.href = '/register';
+                }}
+              />
+            </AuthWrapper>
+          </AuthProvider>
+        </Client:only>
+
+        <div class="mt-8 border-t pt-6">
+          <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+            <h3 class="text-sm font-medium text-yellow-800 mb-2">Demo Information</h3>
+            <p class="text-xs text-yellow-700">
+              • Use the "Quick Demo Login" buttons for instant access<br/>
+              • Internal users: email@dealflow360.com / password123<br/>
+              • Customers: contact@acmecorp.com / customer123<br/>
+              • Backend fallback: If FastAPI is down, mock authentication will be used automatically
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center">
+      <p class="text-xs text-gray-500">
+        DealFlow360 Authentication v1.0 • {new Date().getFullYear()}
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Client-side redirect for authenticated users
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('dealflow360_user');
+      const token = localStorage.getItem('dealflow360_token');
+      
+      if (user && token) {
+        // Parse user role for redirect logic
+        const userData = JSON.parse(user);
+        const isCustomer = userData.role === 'Customer';
+        
+        if (isCustomer) {
+          window.location.href = '/portal/quote/1001';
+        } else {
+          window.location.href = '/pipeline';
+        }
+      }
+    }
+  </script>
+</Layout>

@@ -1,0 +1,30 @@
+---
+import Layout from '../Layout.astro';
+import PipelineKanban from '../components/PipelineKanban.jsx';
+---
+
+<Layout title="DealFlow360 - Pipeline">
+  <PipelineKanban client:load />
+  
+  <script>
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      const user = localStorage.getItem('dealflow360_user');
+      const token = localStorage.getItem('dealflow360_token');
+      
+      if (!user || !token) {
+        window.location.href = '/login';
+      } else {
+        // Check if customer is trying to access internal page
+        try {
+          const userData = JSON.parse(user);
+          if (userData.role === 'Customer') {
+            window.location.href = '/portal/quote/1001';
+          }
+        } catch (e) {
+          console.warn('Could not parse user data:', e);
+        }
+      }
+    });
+  </script>
+</Layout>
