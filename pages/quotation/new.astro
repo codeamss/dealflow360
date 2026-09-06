@@ -5,40 +5,40 @@ import ApprovalPanel from '../../components/ApprovalPanel.jsx';
 import FulfillmentSplitter from '../../components/FulfillmentSplitter.jsx';
 ---
 
-<Layout title="New Quotation - DealFlow360">
-  <div class="space-y-6">
+<Layout title="DealFlow360 - Quotation Studio" activeModule="Product">
+  <div class="space-y-6 max-w-[1500px] mx-auto">
     
     <!-- Header with Workflow Tabs -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <div class="flex items-center gap-2 mb-1">
-          <a href="/pipeline" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">← Pipeline</a>
-          <span class="text-xs text-slate-400">/</span>
-          <span class="text-xs text-slate-500 font-medium">New Quotation</span>
+          <a href="/pipeline" class="text-xs text-sky-400 hover:text-sky-300 font-semibold">← Pipeline</a>
+          <span class="text-xs text-slate-500">/</span>
+          <span class="text-xs text-slate-400 font-medium">New Quotation</span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Quotation Studio</h1>
-        <p class="text-sm text-slate-600 mt-0.5">Build pricing proposals, test approval conditions, and split fulfillment</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Quotation Studio</h1>
+        <p class="text-sm text-slate-400 mt-0.5">Build pricing proposals, test approval conditions, and split fulfillment</p>
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-sm text-xs font-semibold" id="workflowTabGroup">
+      <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 shadow-sm text-xs font-semibold" id="workflowTabGroup">
         <button 
           type="button" 
-          class="workflow-tab active px-3.5 py-2 rounded-lg bg-indigo-600 text-white shadow-sm transition-all"
+          class="workflow-tab active px-4 py-2 rounded-lg bg-sky-400 text-slate-950 font-bold shadow-md transition-all"
           data-target="tab-builder"
         >
           1. Quote Builder
         </button>
         <button 
           type="button" 
-          class="workflow-tab px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all"
+          class="workflow-tab px-4 py-2 rounded-lg text-slate-300 hover:text-white transition-all font-semibold"
           data-target="tab-approvals"
         >
           2. Approval Engine
         </button>
         <button 
           type="button" 
-          class="workflow-tab px-3.5 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all"
+          class="workflow-tab px-4 py-2 rounded-lg text-slate-300 hover:text-white transition-all font-semibold"
           data-target="tab-fulfillment"
         >
           3. Multi-Warehouse Split
@@ -53,24 +53,12 @@ import FulfillmentSplitter from '../../components/FulfillmentSplitter.jsx';
 
     <!-- Tab 2: Approval Engine Simulation -->
     <div id="tab-approvals" class="tab-pane hidden">
-      <div class="space-y-4">
-        <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-800 flex items-center gap-2">
-          <svg class="w-4 h-4 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span>This panel simulates the approval committee dashboard. Quotes with discounts exceeding standard policy require manager or finance sign-off.</span>
-        </div>
-        <ApprovalPanel client:load />
-      </div>
+      <ApprovalPanel client:load />
     </div>
 
     <!-- Tab 3: Fulfillment Splitter Simulation -->
     <div id="tab-fulfillment" class="tab-pane hidden">
-      <div class="space-y-4">
-        <div class="p-4 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700 flex items-center gap-2">
-          <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-          <span>Calculates multi-warehouse inventory allocation to fulfill physical order items with minimum split shipments.</span>
-        </div>
-        <FulfillmentSplitter client:load />
-      </div>
+      <FulfillmentSplitter client:load />
     </div>
 
   </div>
@@ -87,13 +75,13 @@ import FulfillmentSplitter from '../../components/FulfillmentSplitter.jsx';
 
           // Reset tabs styling
           tabs.forEach(t => {
-            t.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
-            t.classList.add('text-slate-600');
+            t.classList.remove('bg-sky-400', 'text-slate-950', 'font-bold', 'shadow-md');
+            t.classList.add('text-slate-300');
           });
 
           // Set active tab
-          tab.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
-          tab.classList.remove('text-slate-600');
+          tab.classList.add('bg-sky-400', 'text-slate-950', 'font-bold', 'shadow-md');
+          tab.classList.remove('text-slate-300');
 
           // Toggle panes
           panes.forEach(p => {

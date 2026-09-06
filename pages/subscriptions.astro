@@ -1,0 +1,360 @@
+---
+import Layout from '../Layout.astro';
+import { subscriptions } from '../mockData.js';
+
+const totalMRR = subscriptions.reduce((sum, s) => sum + s.mrr_value, 0);
+const totalARR = subscriptions.reduce((sum, s) => sum + s.arr_value, 0);
+const activeSubs = subscriptions.filter(s => s.status === 'Active').length;
+---
+
+<Layout title="DealFlow360 - Subscriptions & Recurring Contracts" activeModule="Subscriptions">
+  <div class="space-y-8 max-w-[1500px] mx-auto" id="subscriptionApp">
+    
+    <!-- Screen 9 Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Subscriptions & Recurring Contracts</h1>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+          Hybrid billing management for one-time capital purchases and 220+ recurring SaaS contracts
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span class="px-3.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+          ● Recurring Engine Active (220+ Contracts)
+        </span>
+      </div>
+    </div>
+
+    <!-- 4 Financial KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Active MRR</span>
+        <div class="text-3xl font-black text-white font-mono mt-2" id="kpiActiveMRR">${totalMRR.toLocaleString()}<span class="text-xs text-slate-400 font-normal">/mo</span></div>
+        <span class="text-xs text-emerald-400 font-semibold mt-1 inline-block">&uarr; +18.4% YoY recurring growth</span>
+      </div>
+
+      <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Annual Run Rate (ARR)</span>
+        <div class="text-3xl font-black text-purple-400 font-mono mt-2" id="kpiActiveARR">${totalARR.toLocaleString()}</div>
+        <span class="text-xs text-slate-400 font-semibold mt-1 inline-block">Committed enterprise run-rate</span>
+      </div>
+
+      <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Subscriptions</span>
+        <div class="text-3xl font-black text-white font-mono mt-2" id="kpiActiveCount">{activeSubs} <span class="text-xs text-slate-400 font-normal">/ {subscriptions.length}</span></div>
+        <span class="text-xs text-slate-400 font-semibold mt-1 inline-block">Across corporate accounts</span>
+      </div>
+
+      <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Avg. Contract Lifetime</span>
+        <div class="text-3xl font-black text-sky-400 font-mono mt-2">22.6 <span class="text-xs text-slate-400 font-normal">mo</span></div>
+        <span class="text-xs text-emerald-400 font-semibold mt-1 inline-block">98.2% renewal retention</span>
+      </div>
+    </div>
+
+    <!-- Active Recurring Contracts Schedule Table -->
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white" id="kpiTotalContracts">Recurring Contracts Ledger ({subscriptions.length} Contracts)</h2>
+          <p class="text-xs text-slate-400">Generated automatically from hybrid quotations containing SaaS lines</p>
+        </div>
+
+        <!-- Search Input -->
+        <div class="w-full sm:w-72">
+          <input 
+            type="text" 
+            id="subSearchInput" 
+            oninput="filterSubs()"
+            placeholder="Search contracts or customers..." 
+            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-400"
+          />
+        </div>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <button type="button" class="sub-filter active px-3 py-1 rounded-lg text-xs font-bold bg-purple-600 text-white" onclick="setSubFilter('all', this)">
+          All Contracts ({subscriptions.length})
+        </button>
+        <button type="button" class="sub-filter px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white bg-slate-800" onclick="setSubFilter('Active', this)">
+          Active ({activeSubs})
+        </button>
+        <button type="button" class="sub-filter px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white bg-slate-800" onclick="setSubFilter('In Review', this)">
+          In Review
+        </button>
+        <button type="button" class="sub-filter px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white bg-slate-800" onclick="setSubFilter('Expiring Soon', this)">
+          Expiring Soon
+        </button>
+      </div>
+
+      <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+        <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-5 py-3 text-left">Contract #</th>
+              <th class="px-5 py-3 text-left">Customer</th>
+              <th class="px-5 py-3 text-left">Plan / Product</th>
+              <th class="px-4 py-3 text-center">Cadence</th>
+              <th class="px-4 py-3 text-right">MRR Value</th>
+              <th class="px-5 py-3 text-left">Next Bill Date</th>
+              <th class="px-4 py-3 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody id="subsTableBody" class="divide-y divide-slate-800 text-slate-300">
+            <!-- Rendered by client script -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800 text-xs text-slate-400 gap-3">
+        <div id="subPaginationInfo">
+          Showing 1–25 of {subscriptions.length} contracts
+        </div>
+
+        <div class="flex items-center gap-1.5" id="subPaginationControls">
+          <!-- Populated by script -->
+        </div>
+      </div>
+
+      <!-- Yellow Callout Box -->
+      <div class="excalidraw-callout">
+        When an order contains recurring lines, a subscription billing schedule is generated alongside the one-time physical invoice. Midterm changes trigger automatic daily proration.
+      </div>
+    </div>
+
+    <!-- Mid-Term Proration Calculator & Simulator -->
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-5">
+      <div>
+        <h2 class="text-lg font-bold text-white">Interactive Mid-Term Proration Calculator</h2>
+        <p class="text-xs text-slate-400">Simulate adding seats or expanding bandwidth mid-cycle with day-level billing alignment</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-950/40 p-5 rounded-xl border border-slate-800">
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Target Contract</label>
+          <select id="prorateContract" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-semibold text-white">
+            {subscriptions.slice(0, 15).map(s => (
+              <option value={s.mrr_value}>
+                {s.contract_number} - {s.customer} (${s.mrr_value}/mo)
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Days Remaining in Current Cycle</label>
+          <input type="number" id="prorateDays" value="16" min="1" max="30" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-bold text-white font-mono" />
+          <span class="text-[10px] text-slate-500 mt-1 block">Cycle: 30 days total</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Additional Add-On Service</label>
+          <select id="prorateAddon" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs font-semibold text-white">
+            <option value="100">+1TB High Performance Storage (+$100/mo)</option>
+            <option value="250">+5 Additional Analyst Seats (+$250/mo)</option>
+            <option value="500">Premium SLA Fast Response (+$500/mo)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Proration Result -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-4 rounded-xl bg-purple-950/30 border border-purple-500/40 gap-4">
+        <div>
+          <span class="text-xs font-bold text-purple-300">Prorated Charge Due Today:</span>
+          <div class="text-2xl font-black text-white font-mono mt-0.5" id="prorateResult">$53.33</div>
+          <span class="text-[11px] text-slate-400">Daily rate ($100 / 30) &times; 16 days billed immediately. Regular subscription updates to new rate on next cycle.</span>
+        </div>
+
+        <button 
+          type="button"
+          onclick="applyProration()"
+          class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap"
+        >
+          Execute Mid-Term Amendment
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script is:inline define:vars={{ initialSubs: subscriptions }}>
+    let allSubs = initialSubs || [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let currentPage = 1;
+    const pageSize = 25;
+
+    function loadMergedSubscriptions() {
+      let customSubs = [];
+      try {
+        customSubs = JSON.parse(localStorage.getItem('dealflow360_custom_subscriptions') || '[]');
+      } catch (e) {}
+
+      const customNums = new Set(customSubs.map(s => s.contract_number));
+      const baseSubs = (initialSubs || []).filter(s => !customNums.has(s.contract_number));
+      allSubs = [...customSubs, ...baseSubs];
+
+      const totalMRR = allSubs.reduce((sum, s) => sum + (Number(s.mrr_value) || 0), 0);
+      const totalARR = allSubs.reduce((sum, s) => sum + (Number(s.arr_value) || 0), 0);
+      const activeSubs = allSubs.filter(s => s.status === 'Active').length;
+
+      const mrrEl = document.getElementById('kpiActiveMRR');
+      if (mrrEl) mrrEl.innerHTML = `$${totalMRR.toLocaleString()}<span class="text-xs text-slate-400 font-normal">/mo</span>`;
+      const arrEl = document.getElementById('kpiActiveARR');
+      if (arrEl) arrEl.textContent = `$${totalARR.toLocaleString()}`;
+      const countEl = document.getElementById('kpiActiveCount');
+      if (countEl) countEl.innerHTML = `${activeSubs} <span class="text-xs text-slate-400 font-normal">/ ${allSubs.length}</span>`;
+      const headerEl = document.getElementById('kpiTotalContracts');
+      if (headerEl) headerEl.textContent = `Recurring Contracts Ledger (${allSubs.length} Contracts)`;
+
+      const allFilterBtn = document.querySelector('.sub-filter[onclick*="all"]');
+      if (allFilterBtn) allFilterBtn.textContent = `All Contracts (${allSubs.length})`;
+      const activeFilterBtn = document.querySelector('.sub-filter[onclick*="Active"]');
+      if (activeFilterBtn) activeFilterBtn.textContent = `Active (${activeSubs})`;
+    }
+
+    function renderSubs() {
+      const tbody = document.getElementById('subsTableBody');
+      const infoEl = document.getElementById('subPaginationInfo');
+      const controlsEl = document.getElementById('subPaginationControls');
+      if (!tbody) return;
+
+      const filtered = allSubs.filter(s => {
+        const matchCat = currentFilter === 'all' || s.status.toLowerCase() === currentFilter.toLowerCase();
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !q || 
+          s.customer.toLowerCase().includes(q) || 
+          s.contract_number.toLowerCase().includes(q) || 
+          s.plan_name.toLowerCase().includes(q);
+        return matchCat && matchSearch;
+      });
+
+      const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+
+      if (infoEl) {
+        infoEl.textContent = `Showing ${filtered.length === 0 ? 0 : startIndex + 1}–${Math.min(startIndex + pageSize, filtered.length)} of ${filtered.length} recurring contracts`;
+      }
+
+      tbody.innerHTML = '';
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">No recurring contracts found.</td></tr>`;
+      } else {
+        pageItems.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/50 transition-colors';
+          tr.innerHTML = `
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-bold text-purple-400">${s.contract_number}</span>
+                ${s.quotation_id ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">Quote #${s.quotation_id}</span>` : ''}
+              </div>
+            </td>
+            <td class="px-5 py-3.5 font-semibold text-white">${s.customer}</td>
+            <td class="px-5 py-3.5">${s.plan_name}</td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-semibold text-[10px]">${s.cadence}</span>
+            </td>
+            <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-400">$${Number(s.mrr_value).toLocaleString()}/mo</td>
+            <td class="px-5 py-3.5 font-mono text-slate-400">${s.next_bill_date}</td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                s.status === 'Active' ? 'bg-emerald-500/20 text-emerald-300' : (s.status === 'In Review' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300')
+              }">${s.status}</span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Pagination controls
+      if (controlsEl) {
+        controlsEl.innerHTML = '';
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 font-bold ${currentPage > 1 ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'}`;
+        prevBtn.textContent = '← Prev';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderSubs(); } };
+        controlsEl.appendChild(prevBtn);
+
+        let startP = Math.max(1, currentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          const pBtn = document.createElement('button');
+          pBtn.className = `w-7 h-7 rounded-lg text-xs font-bold ${p === currentPage ? 'bg-purple-600 text-white shadow-md' : 'border border-slate-700 text-slate-300 hover:bg-slate-800'}`;
+          pBtn.textContent = p;
+          pBtn.onclick = () => { currentPage = p; renderSubs(); };
+          controlsEl.appendChild(pBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 font-bold ${currentPage < totalPages ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'}`;
+        nextBtn.textContent = 'Next →';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderSubs(); } };
+        controlsEl.appendChild(nextBtn);
+      }
+    }
+
+    function setSubFilter(cat, btn) {
+      currentFilter = cat;
+      currentPage = 1;
+      document.querySelectorAll('.sub-filter').forEach(b => {
+        b.classList.remove('bg-purple-600', 'text-white');
+        b.classList.add('text-slate-300', 'bg-slate-800');
+      });
+      btn.classList.add('bg-purple-600', 'text-white');
+      btn.classList.remove('text-slate-300', 'bg-slate-800');
+      renderSubs();
+    }
+
+    function filterSubs() {
+      searchQuery = document.getElementById('subSearchInput').value;
+      currentPage = 1;
+      renderSubs();
+    }
+
+    function updateProrate() {
+      const days = parseInt(document.getElementById('prorateDays')?.value || '16');
+      const addonPrice = parseFloat(document.getElementById('prorateAddon')?.value || '100');
+      const dailyRate = addonPrice / 30;
+      const prorated = (dailyRate * days).toFixed(2);
+      const resEl = document.getElementById('prorateResult');
+      if (resEl) {
+        resEl.textContent = '$' + prorated;
+      }
+    }
+
+    document.getElementById('prorateDays')?.addEventListener('input', updateProrate);
+    document.getElementById('prorateAddon')?.addEventListener('change', updateProrate);
+
+    function applyProration() {
+      if (window.showToast) {
+        window.showToast('Mid-term contract amendment executed! Prorated invoice issued.', 'success');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMergedSubscriptions();
+      renderSubs();
+    });
+
+    window.addEventListener('storage', () => {
+      loadMergedSubscriptions();
+      renderSubs();
+    });
+
+    window.addEventListener('dealflow360_billing_updated', () => {
+      loadMergedSubscriptions();
+      renderSubs();
+    });
+  </script>
+</Layout>

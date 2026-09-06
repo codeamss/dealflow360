@@ -1,8 +1,13 @@
-﻿# Dependencies
+# Dependencies
+node_modules/
 dist/
 .astro/
-node_modules/.vite/
-node_modules/.astro/
+
+# Chrome testing profiles & screenshots
+temp_chrome_profile/
+temp_chrome_profile2/
+*.png
+capture_excalidraw.mjs
 
 # Python
 __pycache__/

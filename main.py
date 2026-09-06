@@ -25,7 +25,7 @@ from models import (
     SubscriptionPlan,
     ApprovalLog,
 )
-from schemas import SplitFulfillmentRequest
+from schemas import SplitFulfillmentRequest, ProductCreate
 from auth import setup_auth_routes
 
 # -----------------------------------------------------------------
@@ -102,6 +102,38 @@ def _stock_for(product_id: int, warehouse_id: int, db: Session) -> int:
         .where(Inventory.product_id == product_id)
     ).scalar()
     return int(row) if row else 0
+
+# -----------------------------------------------------------------
+# Endpoints: /api/products (GET & POST)
+# -----------------------------------------------------------------
+@app.get("/api/products", response_model=list, tags=["products"])
+def list_products(db: Session = Depends(get_db)):
+    """Return all products from database catalog."""
+    return db.query(Product).all()
+
+@app.post("/api/products", response_model=dict, tags=["products"])
+def create_product(product_in: ProductCreate, db: Session = Depends(get_db)):
+    """Create a new product in the database catalog."""
+    prod = Product(
+        name=product_in.name,
+        category=product_in.category,
+        price=product_in.price,
+        unit=product_in.unit,
+        tax=product_in.tax,
+        is_subscription=product_in.is_subscription
+    )
+    db.add(prod)
+    db.commit()
+    db.refresh(prod)
+    return {
+        "id": prod.id,
+        "name": prod.name,
+        "category": prod.category,
+        "price": float(prod.price),
+        "unit": prod.unit,
+        "tax": float(prod.tax),
+        "is_subscription": prod.is_subscription
+    }
 
 # -----------------------------------------------------------------
 # Endpoint: GET /api/quotations
@@ -548,3 +580,4 @@ def quotation_billing_schedule(
         "one_time": one_time_lines,
         "subscriptions": sub_lines,
     }
+# DealFlow360 RBAC Governance v2.1

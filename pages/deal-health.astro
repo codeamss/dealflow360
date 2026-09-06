@@ -1,0 +1,22 @@
+---
+import Layout from '../Layout.astro';
+import DealHealthAndReports from '../components/DealHealthAndReports.jsx';
+---
+
+<Layout title="DealFlow360 - Deal Health & Anomaly Dashboard" activeModule="Deal Health">
+  <div class="space-y-6 max-w-[1500px] mx-auto">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Deal Health & Anomaly Monitor</h1>
+      <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+        Proactively catches proposals stalled past 48 hours and high-risk commercial margin deviations
+      </p>
+    </div>
+
+    <!-- Yellow Callout Box -->
+    <div class="excalidraw-callout">
+      Deals inactive in Draft or Negotiation for over 48 hours without customer interaction trigger automated sales representative nudges. Quotes with blended risk &gt;25% escalate to Finance.
+    </div>
+
+    <DealHealthAndReports client:load />
+  </div>
+</Layout>

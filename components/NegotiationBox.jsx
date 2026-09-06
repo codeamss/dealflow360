@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { confirmQuoteAndSendToBilling } from "../billingService.js";
 
 export default function NegotiationBox({ quotationId = 1001, isCustomerView = false }) {
   const [counterDiscount, setCounterDiscount] = useState("");
@@ -61,16 +62,51 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
     setIsSubmitting(true);
     
     setTimeout(() => {
+      const exceedsThreshold = discountVal > 12;
       const newNegotiation = {
         id: Date.now(),
         type: isCustomerView ? "customer" : "internal",
         message: counterMessage.trim() || `Proposed revised discount of ${discountVal}%.`,
         discount: discountVal,
+        exceedsThreshold,
         timestamp: new Date().toISOString(),
-        user: isCustomerView ? "You (Customer Procurement)" : "Sales Directorate"
+        user: isCustomerView ? "Customer Procurement" : "Sales Directorate"
       };
       
-      const updated = [newNegotiation, ...negotiationHistory];
+      let updated = [newNegotiation, ...negotiationHistory];
+
+      // Rule #9: If terms change beyond thresholds (12%), the quote automatically re-enters approval flow
+      if (exceedsThreshold) {
+        const thresholdEvent = {
+          id: Date.now() + 1,
+          type: "system",
+          message: `⚠️ Policy Threshold Trigger: Counter-offer of ${discountVal}% exceeds standard 12% discount ceiling. Quotation #${quotationId} has automatically re-entered the approval flow for Sales Manager sign-off.`,
+          discount: discountVal,
+          isWarning: true,
+          timestamp: new Date(Date.now() + 100).toISOString(),
+          user: "Governance Engine"
+        };
+        updated = [thresholdEvent, ...updated];
+
+        try {
+          const stored = JSON.parse(localStorage.getItem("dealflow360_custom_quotes") || "[]");
+          const updatedQuotes = stored.map(q => {
+            if (q.id === parseInt(quotationId)) {
+              return { 
+                ...q, 
+                status: "Pending Approval", 
+                reapproval_reason: `Counter-offer of ${discountVal}% exceeds 12% policy threshold` 
+              };
+            }
+            return q;
+          });
+          localStorage.setItem("dealflow360_custom_quotes", JSON.stringify(updatedQuotes));
+          window.dispatchEvent(new Event("storage"));
+        } catch (err) {
+          console.warn("Failed to update quote status upon threshold breach:", err);
+        }
+      }
+
       saveHistory(updated);
       setCounterDiscount("");
       setCounterMessage("");
@@ -78,21 +114,27 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
 
       if (typeof window !== "undefined" && window.showToast) {
         window.showToast(
-          isCustomerView 
-            ? `Counter-offer of ${discountVal}% submitted to sales team` 
-            : `Revised discount offer of ${discountVal}% published to customer portal`,
-          "success"
+          exceedsThreshold 
+            ? `Threshold breach (>12%): Quote #${quotationId} re-routed for Sales Manager approval` 
+            : isCustomerView 
+              ? `Counter-offer of ${discountVal}% submitted to sales team` 
+              : `Revised discount offer of ${discountVal}% published to customer portal`,
+          exceedsThreshold ? "info" : "success"
         );
       }
     }, 400);
   };
 
   const handleAcceptOffer = (item) => {
+    const orderId = `ORD-2026-${quotationId}`;
+    const invoiceId = `INV-2026-${quotationId}`;
+
     const confirmMsg = {
       id: Date.now(),
       type: "system",
-      message: `Agreement confirmed! ${isCustomerView ? "Customer accepted" : "Sales Directorate ratified"} the ${item.discount}% discount proposal. Order is progressing to fulfillment.`,
+      message: `Agreement sealed! ${isCustomerView ? "Customer ratified" : "Sales Directorate approved"} the ${item.discount}% discount proposal. Order ${orderId} created, Invoice ${invoiceId} generated, and physical equipment dispatched to regional warehouse fulfillment queue.`,
       discount: item.discount,
+      isSuccess: true,
       timestamp: new Date().toISOString(),
       user: "System Confirmation"
     };
@@ -100,8 +142,15 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
     const updated = [confirmMsg, ...negotiationHistory];
     saveHistory(updated);
 
+    // Generate invoice and subscription and persist to billing operations
+    try {
+      confirmQuoteAndSendToBilling(quotationId, { discount: item.discount });
+    } catch (err) {
+      console.warn("Failed to generate billing records:", err);
+    }
+
     if (typeof window !== "undefined" && window.showToast) {
-      window.showToast(`Offer of ${item.discount}% discount accepted! Status: Confirmed`, "success");
+      window.showToast(`Quotation Confirmed! Invoice #${invoiceId} and Subscription #SUB-2026-${quotationId} sent to billing operations.`, "success");
     }
   };
 
@@ -120,31 +169,31 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
   };
 
   const getDiscountBadgeStyle = (discount) => {
-    if (discount <= 10) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    if (discount <= 20) return "bg-amber-50 text-amber-700 border-amber-200";
-    return "bg-rose-50 text-rose-700 border-rose-200";
+    if (discount <= 10) return "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+    if (discount <= 20) return "bg-amber-500/20 text-amber-300 border-amber-500/40";
+    return "bg-rose-500/20 text-rose-300 border-rose-500/40";
   };
 
   const quickPresets = [8, 12, 15, 18, 22];
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="bg-slate-900/90 rounded-2xl border border-slate-700/80 shadow-2xl overflow-hidden text-white">
       {/* Header */}
-      <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/50">
+      <div className="p-6 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-800/60">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-slate-900 text-base">Direct Negotiation Channel</h3>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <h3 className="font-bold text-white text-base">Direct Negotiation Channel</h3>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
               {isCustomerView ? "Customer Portal" : "Internal Sales Desk"}
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Exchange counter-proposals and negotiate terms securely in real time
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
-          <span className="text-xs font-medium text-slate-500">Active Offer:</span>
+        <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 shadow-sm">
+          <span className="text-xs font-medium text-slate-400">Active Offer:</span>
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${getDiscountBadgeStyle(calculateCurrentDiscount())}`}>
             {calculateCurrentDiscount()}% Off
           </span>
@@ -153,9 +202,9 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
 
       <div className="p-6 space-y-6">
         {/* Proposal Form */}
-        <form onSubmit={handleSubmitCounter} className="p-5 bg-slate-50 rounded-xl border border-slate-200/80 space-y-4">
+        <form onSubmit={handleSubmitCounter} className="p-5 bg-slate-800/70 rounded-xl border border-slate-700 space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
               {isCustomerView ? "Submit Counter Discount Offer" : "Issue Commercial Counter-Proposal"}
             </label>
             
@@ -167,7 +216,7 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                   key={preset}
                   type="button"
                   onClick={() => setCounterDiscount(preset.toString())}
-                  className="px-2 py-0.5 text-xs font-medium bg-white hover:bg-slate-200 text-slate-700 rounded border border-slate-200 transition-colors"
+                  className="px-2 py-0.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
                 >
                   {preset}%
                 </button>
@@ -186,10 +235,10 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                   max="90"
                   step="0.5"
                   placeholder="e.g. 15"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm border border-slate-700 rounded-xl bg-slate-800 text-white font-mono focus:ring-2 focus:ring-sky-400 focus:outline-none"
                   disabled={isSubmitting}
                 />
-                <span className="absolute right-3 top-2 text-xs font-semibold text-slate-400">% off</span>
+                <span className="absolute right-3 top-2.5 text-xs font-bold text-slate-400 font-mono">% off</span>
               </div>
             </div>
 
@@ -199,7 +248,7 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                 value={counterMessage}
                 onChange={(e) => setCounterMessage(e.target.value)}
                 placeholder="Rationale (e.g. Volume commitment, quarterly budget cap)..."
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-sm border border-slate-700 rounded-xl bg-slate-800 text-white font-medium focus:ring-2 focus:ring-sky-400 focus:outline-none placeholder:text-slate-500"
                 disabled={isSubmitting}
               />
             </div>
@@ -209,15 +258,15 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
             <button
               type="submit"
               disabled={!counterDiscount || isSubmitting}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center shadow-sm transition-all ${
+              className={`px-5 py-2.5 rounded-xl text-xs font-black flex items-center shadow-lg transition-all cursor-pointer ${
                 !counterDiscount || isSubmitting
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 text-white active:scale-[0.98]"
+                  ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
+                  : "bg-sky-400 hover:bg-sky-300 text-slate-950 active:scale-[0.98]"
               }`}
             >
               {isSubmitting ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-slate-950" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
@@ -225,7 +274,7 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                 </>
               ) : (
                 <>
-                  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 mr-1.5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                   Transmit Counter Offer
@@ -237,7 +286,7 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
 
         {/* Timeline Log */}
         <div>
-          <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
             Negotiation Audit Stream ({negotiationHistory.length})
           </h4>
 
@@ -251,31 +300,35 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                   key={item.id}
                   className={`p-4 rounded-xl border transition-all ${
                     isSys
-                      ? "bg-emerald-50/70 border-emerald-200 text-emerald-900"
+                      ? item.isWarning
+                        ? "bg-amber-950/20 border-amber-500/30 text-amber-200 shadow-sm"
+                        : "bg-emerald-950/20 border-emerald-500/30 text-emerald-200"
                       : isCust
-                      ? "bg-indigo-50/50 border-indigo-100"
-                      : "bg-slate-50 border-slate-200"
+                      ? "bg-slate-800/80 border-sky-500/30 text-slate-200"
+                      : "bg-slate-800/60 border-slate-700 text-slate-200"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        isSys
-                          ? "bg-emerald-200 text-emerald-800"
+                        item.isWarning
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                          : isSys
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                           : isCust
-                          ? "bg-indigo-200 text-indigo-800"
-                          : "bg-slate-200 text-slate-800"
+                          ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
+                          : "bg-slate-700 text-slate-300 border border-slate-600"
                       }`}>
-                        {isSys ? "✓" : isCust ? "C" : "S"}
+                        {item.isWarning ? "!" : isSys ? "✓" : isCust ? "C" : "S"}
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900">{item.user}</span>
-                        <span className="text-[11px] text-slate-500 ml-2">{formatDate(item.timestamp)}</span>
+                        <span className="text-xs font-bold text-white">{item.user}</span>
+                        <span className="text-[11px] text-slate-400 font-mono ml-2">{formatDate(item.timestamp)}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getDiscountBadgeStyle(item.discount)}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold border font-mono ${getDiscountBadgeStyle(item.discount)}`}>
                         {item.discount}%
                       </span>
 
@@ -283,7 +336,7 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                         <button
                           type="button"
                           onClick={() => handleAcceptOffer(item)}
-                          className="px-2 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded border border-emerald-300 transition-colors"
+                          className="px-2.5 py-1 text-[11px] font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-sm transition-colors cursor-pointer"
                           title="Ratify and accept this discount level"
                         >
                           Accept
@@ -292,9 +345,23 @@ export default function NegotiationBox({ quotationId = 1001, isCustomerView = fa
                     </div>
                   </div>
 
-                  <p className="text-xs text-slate-700 leading-relaxed pl-8">
+                  <p className="text-xs text-slate-300 leading-relaxed pl-8">
                     {item.message}
                   </p>
+
+                  {item.isSuccess && (
+                    <div className="mt-3 pt-2.5 border-t border-emerald-500/30 flex items-center justify-between pl-8">
+                      <span className="text-[11px] font-bold text-emerald-400">
+                        Order #ORD-2026-{quotationId} &bull; Invoice Issued
+                      </span>
+                      <a
+                        href="/quotation/new#tab-fulfillment"
+                        className="px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg text-[11px] font-black shadow-sm transition-all"
+                      >
+                        Proceed to Fulfillment &rarr;
+                      </a>
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -1,210 +1,184 @@
 ---
 import Layout from '../Layout.astro';
-import QuotationBuilder from '../components/QuotationBuilder.jsx';
+import DealHealthAndReports from '../components/DealHealthAndReports.jsx';
 ---
 
-<Layout title="DealFlow360 - Executive Sales Dashboard">
-  <div class="w-full space-y-6">
-    {/* Welcome Header */}
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-900">Commercial Deal Hub</h1>
-        <p id="dashboard-welcome" class="text-slate-600 text-sm mt-0.5">Welcome back. Monitoring quotation velocity, margin floors, and approval queues</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <a href="/pipeline" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          Kanban Pipeline
-        </a>
-        <a href="/quotation/new" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 active:scale-[0.98]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Build Quotation
-        </a>
-      </div>
-    </div>
-
-    {/* Dynamic Stats KPI Cards */}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:border-slate-300 transition-all">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Quotes</p>
-            <p id="stat-active-quotes" class="text-2xl font-black text-slate-900 mt-1">5</p>
-            <span class="text-[11px] font-medium text-emerald-600">&uarr; Real-time pipeline</span>
-          </div>
-          <div class="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100 flex-shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:border-slate-300 transition-all">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pipeline Value</p>
-            <p id="stat-total-value" class="text-2xl font-black text-slate-900 mt-1">$102,000</p>
-            <span class="text-[11px] font-medium text-indigo-600">Committed revenue</span>
-          </div>
-          <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100 flex-shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:border-slate-300 transition-all">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending Review</p>
-            <p id="stat-pending-approvals" class="text-2xl font-black text-amber-600 mt-1">1</p>
-            <span class="text-[11px] font-medium text-amber-600">Awaiting executive sign-off</span>
-          </div>
-          <div class="w-11 h-11 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center border border-amber-100 flex-shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:border-slate-300 transition-all">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg. Profit Margin</p>
-            <p id="stat-avg-margin" class="text-2xl font-black text-slate-900 mt-1">34.8%</p>
-            <span class="text-[11px] font-medium text-purple-600">&check; Safe above 25% floor</span>
-          </div>
-          <div class="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center border border-purple-100 flex-shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Quick Action Navigation Grid */}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <a href="/quotation/new" class="bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-sm transition-all group flex items-center gap-3.5">
-        <div class="w-10 h-10 bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white text-indigo-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-        </div>
-        <div>
-          <p class="font-bold text-slate-900 text-sm">Quote Builder</p>
-          <p class="text-xs text-slate-500">Configure lines & upsells</p>
-        </div>
-      </a>
-
-      <a href="/pipeline" class="bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300 hover:shadow-sm transition-all group flex items-center gap-3.5">
-        <div class="w-10 h-10 bg-emerald-50 group-hover:bg-emerald-600 group-hover:text-white text-emerald-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div>
-          <p class="font-bold text-slate-900 text-sm">Sales Pipeline</p>
-          <p class="text-xs text-slate-500">Track deal progression</p>
-        </div>
-      </a>
-
-      <a href="/quotation/new" class="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all group flex items-center gap-3.5">
-        <div class="w-10 h-10 bg-amber-50 group-hover:bg-amber-600 group-hover:text-white text-amber-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </div>
-        <div>
-          <p class="font-bold text-slate-900 text-sm">Approval Engine</p>
-          <p class="text-xs text-slate-500">Authorize discount gates</p>
-        </div>
-      </a>
-
-      <a href="/settings" class="bg-white border border-slate-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-sm transition-all group flex items-center gap-3.5">
-        <div class="w-10 h-10 bg-purple-50 group-hover:bg-purple-600 group-hover:text-white text-purple-600 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </div>
-        <div>
-          <p class="font-bold text-slate-900 text-sm">Platform Settings</p>
-          <p class="text-xs text-slate-500">Rules & integrations</p>
-        </div>
-      </a>
-    </div>
-
-    {/* Integrated Quotation Builder */}
+<Layout title="DealFlow360 - Sales Dashboard / Home" activeModule="Dashboard">
+  <div class="space-y-8 max-w-[1500px] mx-auto">
+    
+    <!-- Screen 2: Sales Dashboard / Home Top Section -->
     <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Immediate Quotation Creator</h2>
-          <p class="text-xs text-slate-500">Draft proposals with live line calculations, margins, and warehouse allocation</p>
-        </div>
-        <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md">
-          Live Pricing Engine
-        </span>
+      <!-- Title & Subtitle -->
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Sales Dashboard / Home</h1>
+        <p class="text-slate-400 text-sm mt-1">Central hub, links out to every module below</p>
       </div>
-      <QuotationBuilder client:load />
+
+      <!-- 3 KPI Cards matching Screen 2 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Card 1: Pending Approvals -->
+        <a href="/approvals" class="bg-slate-800/80 hover:bg-slate-800 border-2 border-slate-700/80 hover:border-sky-400/60 rounded-2xl p-6 transition-all group block shadow-lg">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-sky-300 transition-colors">
+            Pending Approvals
+          </div>
+          <div class="text-3xl font-black text-white mt-2 font-mono">
+            4 <span class="text-base font-normal text-slate-300">quotations waiting</span>
+          </div>
+          <div class="mt-4 flex items-center text-xs font-semibold text-amber-400">
+            <span>Requires Manager / Finance Sign-off</span>
+            <span class="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+        <!-- Card 2: Open Quotations -->
+        <a href="/pipeline" class="bg-slate-800/80 hover:bg-slate-800 border-2 border-slate-700/80 hover:border-sky-400/60 rounded-2xl p-6 transition-all group block shadow-lg">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-sky-300 transition-colors">
+            Open Quotations
+          </div>
+          <div class="text-3xl font-black text-white mt-2 font-mono">
+            12 <span class="text-base font-normal text-slate-300">active deals</span>
+          </div>
+          <div class="mt-4 flex items-center text-xs font-semibold text-sky-400">
+            <span>Explore Live Sales Pipeline</span>
+            <span class="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
+          </div>
+        </a>
+
+        <!-- Card 3: At-Risk Deals -->
+        <a href="/deal-health" class="bg-slate-800/80 hover:bg-slate-800 border-2 border-slate-700/80 hover:border-sky-400/60 rounded-2xl p-6 transition-all group block shadow-lg">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-sky-300 transition-colors">
+            At-Risk Deals
+          </div>
+          <div class="text-3xl font-black text-rose-400 mt-2 font-mono">
+            3 <span class="text-base font-normal text-slate-300">flagged by Deal Health</span>
+          </div>
+          <div class="mt-4 flex items-center text-xs font-semibold text-rose-400">
+            <span>Stalled &gt;48h or excessive discount</span>
+            <span class="ml-1 group-hover:translate-x-1 transition-transform">&rarr;</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3 pt-2">
+        <a 
+          href="/quotation/new" 
+          class="px-5 py-2.5 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-md active:scale-95 flex items-center gap-2"
+        >
+          <span class="text-lg leading-none">+</span>
+          <span>New Quotation</span>
+        </a>
+        <a 
+          href="/approvals" 
+          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 font-semibold rounded-xl text-sm transition-all active:scale-95"
+        >
+          View Approvals
+        </a>
+      </div>
+
+      <!-- Recent Activity Section matching Screen 2 -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 space-y-3">
+        <h3 class="text-lg font-black text-sky-400 tracking-wide">Recent Activity</h3>
+        <ul class="space-y-2 text-sm text-slate-300 font-medium">
+          <li class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold">•</span>
+            <span>Acme Corp quotation approved by Finance</span>
+            <span class="text-xs text-slate-500 font-mono ml-auto">10m ago</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold">•</span>
+            <span>Beta Industries requested a discount change</span>
+            <span class="text-xs text-slate-500 font-mono ml-auto">35m ago</span>
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold">•</span>
+            <span>East Depot stock updated for Order #2291</span>
+            <span class="text-xs text-slate-500 font-mono ml-auto">2h ago</span>
+          </li>
+        </ul>
+      </div>
     </div>
+
+    <!-- Quick Navigation to All Core Modules -->
+    <div class="space-y-4 pt-4 border-t border-slate-800">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-bold text-white">Platform Modules Hub</h2>
+          <p class="text-xs text-slate-400">Direct links to every end-to-end operational module</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="/pipeline" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-sky-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm mb-3">
+            Q
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-sky-300 transition-colors">Quotations (List)</div>
+          <div class="text-xs text-slate-400 mt-1">Kanban & Table pipeline tracking</div>
+        </a>
+
+        <a href="/approvals" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm mb-3">
+            A
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-amber-300 transition-colors">Approvals Queue</div>
+          <div class="text-xs text-slate-400 mt-1">Blended risk score & multi-gate review</div>
+        </a>
+
+        <a href="/fulfillment" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-emerald-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm mb-3">
+            F
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-emerald-300 transition-colors">Fulfillment & Stock</div>
+          <div class="text-xs text-slate-400 mt-1">Live warehouse inventory & split orders</div>
+        </a>
+
+        <a href="/subscriptions" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-purple-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-sm mb-3">
+            S
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-purple-300 transition-colors">Subscriptions</div>
+          <div class="text-xs text-slate-400 mt-1">Recurring SaaS, MRR & proration schedules</div>
+        </a>
+
+        <a href="/invoices" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-rose-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold text-sm mb-3">
+            I
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-rose-300 transition-colors">Invoices (List)</div>
+          <div class="text-xs text-slate-400 mt-1">Paid vs Unpaid delivery reconciliation</div>
+        </a>
+
+        <a href="/deal-health" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-amber-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-sm mb-3">
+            H
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-amber-300 transition-colors">Deal Health</div>
+          <div class="text-xs text-slate-400 mt-1">Catches stalled deals &gt;48h & risk spikes</div>
+        </a>
+
+        <a href="/reports" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-sky-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm mb-3">
+            R
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-sky-300 transition-colors">Filtered Reports</div>
+          <div class="text-xs text-slate-400 mt-1">Multi-dimensional slicing & CSV exports</div>
+        </a>
+
+        <a href="/products" class="bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-indigo-400/50 rounded-xl p-4 transition-all group">
+          <div class="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm mb-3">
+            P
+          </div>
+          <div class="font-bold text-white text-sm group-hover:text-indigo-300 transition-colors">Product Studio</div>
+          <div class="text-xs text-slate-400 mt-1">Upload SKUs, CSV bulk ingest & 220+ catalog</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Manager Deal Health Matrix & Filtered Reporting Engine Preview -->
+    <div class="pt-2">
+      <DealHealthAndReports client:load />
+    </div>
+
   </div>
-  
-  <script>
-    import { quotations as mockQuotations } from '../mockData.js';
-
-    document.addEventListener('DOMContentLoaded', function() {
-      // 1. Auth check and greeting personalization
-      const user = localStorage.getItem('dealflow360_user');
-      const token = localStorage.getItem('dealflow360_token');
-      
-      if (!user || !token) {
-        window.location.href = '/login';
-        return;
-      }
-
-      try {
-        const userData = JSON.parse(user);
-        if (userData.role === 'Customer') {
-          window.location.href = '/portal/quote/1001';
-          return;
-        }
-
-        const welcomeElement = document.getElementById('dashboard-welcome');
-        if (welcomeElement && userData.name) {
-          welcomeElement.textContent = `Welcome back, ${userData.name}. Operating under ${userData.role} privileges.`;
-        }
-      } catch (e) {
-        console.warn('Could not parse user data:', e);
-      }
-
-      // 2. Dynamic KPI calculation
-      try {
-        const saved = localStorage.getItem('dealflow360_custom_quotes');
-        const customQuotes = saved ? JSON.parse(saved) : [];
-        const allQuotes = [...customQuotes, ...mockQuotations];
-
-        const activeCount = allQuotes.filter(q => q.status !== 'Rejected').length;
-        const totalValue = allQuotes.reduce((sum, q) => sum + (q.total_price || 0), 0);
-        const pendingCount = allQuotes.filter(q => q.status === 'Pending Approval').length;
-
-        const activeEl = document.getElementById('stat-active-quotes');
-        const valueEl = document.getElementById('stat-total-value');
-        const pendingEl = document.getElementById('stat-pending-approvals');
-
-        if (activeEl) activeEl.textContent = activeCount.toString();
-        if (valueEl) valueEl.textContent = `$${totalValue.toLocaleString()}`;
-        if (pendingEl) pendingEl.textContent = pendingCount.toString();
-      } catch (e) {
-        console.warn('Could not compute dynamic KPIs:', e);
-      }
-    });
-  </script>
 </Layout>

@@ -1,0 +1,782 @@
+---
+import Layout from '../Layout.astro';
+import { invoices } from '../mockData.js';
+
+const unpaidCount = invoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue').length;
+const paidCount = invoices.filter(i => i.status === 'Paid').length;
+const totalAmount = invoices.reduce((s, i) => s + i.amount, 0);
+---
+
+<Layout title="DealFlow360 - Invoices (List)" activeModule="Invoices">
+  <div class="space-y-8 max-w-[1500px] mx-auto" id="invoicesApp">
+    
+    <!-- Screen 12 Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div class="space-y-2">
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Invoices (List)</h1>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+          Every invoice generated from one-time and recurring orders ({invoices.length} total across corporate ledger)
+        </p>
+      </div>
+
+      <!-- Metric Pills matching Excalidraw Screen 12 -->
+      <div class="flex items-center gap-3">
+        <div class="px-4 py-1.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm flex items-center gap-1.5" id="unpaidPill">
+          <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+          <span>{unpaidCount} Unpaid</span>
+        </div>
+        <div class="px-4 py-1.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-1.5" id="paidPill">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>{paidCount} Paid</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoices Table matching Excalidraw Screen 12 -->
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
+      
+      <!-- Search and Filters Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <!-- Filter Pills -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <button type="button" class="inv-filter active px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-400 text-slate-950" onclick="setInvFilter('all', this)">
+            All Invoices ({invoices.length})
+          </button>
+          <button type="button" class="inv-filter px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white bg-slate-800" onclick="setInvFilter('Unpaid', this)">
+            Unpaid / Overdue ({unpaidCount})
+          </button>
+          <button type="button" class="inv-filter px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white bg-slate-800" onclick="setInvFilter('Paid', this)">
+            Paid Only ({paidCount})
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="w-full sm:w-72">
+          <input 
+            type="text" 
+            id="invSearchInput" 
+            oninput="filterInvoices()"
+            placeholder="Search invoice #, customer..." 
+            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
+        </div>
+      </div>
+
+      <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+        <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm" id="invoicesTable">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-5 py-3.5 text-left">Invoice #</th>
+              <th class="px-5 py-3.5 text-left">Customer</th>
+              <th class="px-4 py-3.5 text-right">Amount</th>
+              <th class="px-4 py-3.5 text-center">Status</th>
+              <th class="px-5 py-3.5 text-left">Due Date</th>
+              <th class="px-5 py-3.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invoicesTableBody" class="divide-y divide-slate-800 text-slate-300">
+            <!-- Populated dynamically with pagination -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Controls Bar -->
+      <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800 text-xs text-slate-400 gap-3">
+        <div id="invPaginationInfo">
+          Showing 1–25 of {invoices.length} invoices
+        </div>
+
+        <div class="flex items-center gap-1.5" id="invPaginationControls">
+          <!-- Dynamically populated page buttons -->
+        </div>
+      </div>
+
+      <!-- Yellow Callout Box matching Excalidraw Screen 12 -->
+      <div class="excalidraw-callout">
+        Click an invoice row to open its full payment and delivery reconciliation detail.
+      </div>
+    </div>
+
+    <!-- Screen 12 Reconciliation Detail Modal -->
+    <div id="reconModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+      <div class="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 max-w-lg w-full p-6 space-y-5">
+        <div class="flex justify-between items-start pb-3 border-b border-slate-800">
+          <div>
+            <span class="text-xs font-mono text-slate-400" id="modalInvNum">INV-1042</span>
+            <h3 class="text-xl font-bold text-white mt-0.5" id="modalCustomer">Acme Corp</h3>
+          </div>
+          <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+            <span class="text-xs text-slate-400">Invoice Amount</span>
+            <div class="text-xl font-bold text-white font-mono mt-1" id="modalAmount">$2,730</div>
+          </div>
+          <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
+            <span class="text-xs text-slate-400">Payment Status</span>
+            <div class="text-sm font-bold mt-1.5" id="modalStatus">Unpaid</div>
+          </div>
+        </div>
+
+        <div class="space-y-3 text-xs bg-slate-950/50 p-4 rounded-xl border border-slate-800 text-slate-300">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Warehouse Dispatch:</span>
+            <span class="font-semibold text-white">East Depot (Slip #ED-9912)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Commercial Contract Ref:</span>
+            <span class="font-mono text-sky-400" id="modalOrderRef">#ORD-2026-1042</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Delivery Confirmation:</span>
+            <span class="text-emerald-400 font-semibold">Signed & Accepted</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="printInvoicePDF(activeModalInvId)" 
+            class="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            title="Print invoice formatted as PDF"
+          >
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            <span>Print Invoice PDF</span>
+          </button>
+
+          <div class="flex gap-2">
+            <button 
+              type="button" 
+              onclick="markPaid()" 
+              id="markPaidBtn"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              Mark as Paid & Reconcile
+            </button>
+            <button 
+              type="button" 
+              onclick="closeModal()" 
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 12 Invoice PDF Document Preview & Print Modal -->
+    <div id="invoicePdfModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 overflow-y-auto">
+      <div class="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 max-w-3xl w-full my-8 overflow-hidden flex flex-col">
+        <!-- Modal Toolbar (Non-printable) -->
+        <div class="px-6 py-4 bg-slate-800/90 border-b border-slate-700 flex flex-wrap justify-between items-center gap-3 no-print">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 font-black text-xs flex items-center justify-center border border-rose-500/40 shadow-sm">
+              PDF
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-white leading-tight" id="pdfModalTitle">Invoice PDF Document</h3>
+              <p class="text-[11px] text-slate-400" id="pdfModalSubtitle">Official corporate statement ready for print and PDF export</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Download PDF Button -->
+            <button
+              type="button"
+              onclick="downloadInvoicePDFFile()"
+              id="downloadPdfBtn"
+              class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Download PDF</span>
+            </button>
+
+            <!-- Print / Save as PDF Button -->
+            <button
+              type="button"
+              onclick="triggerDirectPrint()"
+              class="px-3.5 py-1.5 bg-sky-400 hover:bg-sky-300 active:scale-95 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Print / Save PDF</span>
+            </button>
+
+            <!-- Close Modal -->
+            <button
+              type="button"
+              onclick="closeInvoicePdfModal()"
+              class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Document Preview Canvas -->
+        <div class="p-6 bg-slate-950/70 overflow-y-auto max-h-[75vh] flex justify-center">
+          <!-- The Printable White Paper Invoice Sheet -->
+          <div id="invoicePrintSheet" class="w-full max-w-2xl bg-white text-slate-900 rounded-xl shadow-2xl p-8 sm:p-10 font-sans border border-slate-200">
+            <!-- Dynamic invoice content inserted here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CDN for html2pdf direct export -->
+  <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style is:inline>
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #invoicePrintSheet, #invoicePrintSheet * {
+        visibility: visible !important;
+      }
+      #invoicePdfModal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        display: block !important;
+      }
+      #invoicePrintSheet {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 8mm !important;
+        margin: 0 !important;
+      }
+      .no-print, nav, footer, #toastContainer {
+        display: none !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
+  </style>
+
+  <script is:inline define:vars={{ initialInvoices: invoices }}>
+    let allInvoices = initialInvoices || [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let currentPage = 1;
+    const pageSize = 25;
+    let activeModalInvId = null;
+
+    function loadMergedInvoices() {
+      let customInvoices = [];
+      try {
+        customInvoices = JSON.parse(localStorage.getItem('dealflow360_custom_invoices') || '[]');
+      } catch (e) {}
+
+      const customNums = new Set(customInvoices.map(i => i.invoice_number));
+      const baseInvoices = (initialInvoices || []).filter(i => !customNums.has(i.invoice_number));
+      allInvoices = [...customInvoices, ...baseInvoices];
+
+      const unpaidCount = allInvoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue' || i.status === 'Payment Due').length;
+      const paidCount = allInvoices.filter(i => i.status === 'Paid').length;
+
+      const unpaidPill = document.getElementById('unpaidPill');
+      if (unpaidPill) {
+        unpaidPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span><span>${unpaidCount} Unpaid</span>`;
+      }
+      const paidPill = document.getElementById('paidPill');
+      if (paidPill) {
+        paidPill.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>${paidCount} Paid</span>`;
+      }
+      const allFilterBtn = document.querySelector('.inv-filter[onclick*="all"]');
+      if (allFilterBtn) allFilterBtn.textContent = `All Invoices (${allInvoices.length})`;
+      const unpaidFilterBtn = document.querySelector('.inv-filter[onclick*="Unpaid"]');
+      if (unpaidFilterBtn) unpaidFilterBtn.textContent = `Unpaid / Overdue (${unpaidCount})`;
+      const paidFilterBtn = document.querySelector('.inv-filter[onclick*="Paid"]');
+      if (paidFilterBtn) paidFilterBtn.textContent = `Paid Only (${paidCount})`;
+    }
+
+    function renderInvoices() {
+      const tbody = document.getElementById('invoicesTableBody');
+      const infoEl = document.getElementById('invPaginationInfo');
+      const controlsEl = document.getElementById('invPaginationControls');
+      if (!tbody) return;
+
+      const filtered = allInvoices.filter(inv => {
+        const isUnpaid = inv.status === 'Unpaid' || inv.status === 'Overdue' || inv.status === 'Payment Due';
+        const matchCat = currentFilter === 'all' || 
+          (currentFilter === 'Unpaid' && isUnpaid) ||
+          (currentFilter === 'Paid' && inv.status === 'Paid');
+        
+        const q = searchQuery.toLowerCase();
+        const matchSearch = !q || 
+          inv.invoice_number.toLowerCase().includes(q) || 
+          inv.customer.toLowerCase().includes(q) || 
+          inv.status.toLowerCase().includes(q) ||
+          (inv.order_number && inv.order_number.toLowerCase().includes(q));
+        return matchCat && matchSearch;
+      });
+
+      const totalPages = Math.ceil(filtered.length / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+
+      if (infoEl) {
+        infoEl.textContent = `Showing ${filtered.length === 0 ? 0 : startIndex + 1}–${Math.min(startIndex + pageSize, filtered.length)} of ${filtered.length} invoices`;
+      }
+
+      tbody.innerHTML = '';
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500">No invoices found.</td></tr>`;
+      } else {
+        pageItems.forEach(inv => {
+          const isPaid = inv.status === 'Paid';
+          const isOverdue = inv.status === 'Overdue';
+          const isPaymentDue = inv.status === 'Payment Due';
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/60 cursor-pointer transition-colors';
+          tr.onclick = () => openReconModal(inv);
+
+          tr.innerHTML = `
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-bold text-sky-400">${inv.invoice_number}</span>
+                ${inv.quotation_id ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">From Quote #${inv.quotation_id}</span>` : ''}
+              </div>
+            </td>
+            <td class="px-5 py-3.5 font-semibold text-white">${inv.customer}</td>
+            <td class="px-4 py-3.5 text-right font-mono font-bold text-white">$${Number(inv.amount).toLocaleString()}</td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                isPaid ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : (isPaymentDue ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : (isOverdue ? 'bg-rose-600/20 text-rose-300 border-rose-500/50' : 'bg-rose-500/20 text-rose-300 border-rose-500/40'))
+              }">
+                ${inv.status}
+              </span>
+            </td>
+            <td class="px-5 py-3.5 font-mono text-slate-400">${inv.due_date}</td>
+            <td class="px-5 py-3.5 text-right" onclick="event.stopPropagation()">
+              <div class="flex items-center justify-end gap-1.5">
+                <button 
+                  onclick="printInvoicePDF(${inv.id})"
+                  class="px-2.5 py-1 text-xs font-bold text-rose-300 hover:text-white bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/40 rounded-lg transition-all flex items-center gap-1 shadow-sm cursor-pointer"
+                  title="Print invoice formatted as PDF"
+                >
+                  <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span>Print PDF</span>
+                </button>
+                <button 
+                  onclick="openReconModalById(${inv.id})"
+                  class="px-2.5 py-1 text-xs font-semibold text-sky-400 hover:text-sky-300 hover:bg-sky-400/10 rounded-lg transition-colors cursor-pointer"
+                >
+                  Reconcile &rarr;
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Pagination controls
+      if (controlsEl) {
+        controlsEl.innerHTML = '';
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 font-bold ${currentPage > 1 ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'}`;
+        prevBtn.textContent = '← Prev';
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderInvoices(); } };
+        controlsEl.appendChild(prevBtn);
+
+        let startP = Math.max(1, currentPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        for (let p = startP; p <= endP; p++) {
+          const pBtn = document.createElement('button');
+          pBtn.className = `w-7 h-7 rounded-lg text-xs font-bold ${p === currentPage ? 'bg-sky-400 text-slate-950 shadow-md' : 'border border-slate-700 text-slate-300 hover:bg-slate-800'}`;
+          pBtn.textContent = p;
+          pBtn.onclick = () => { currentPage = p; renderInvoices(); };
+          controlsEl.appendChild(pBtn);
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 font-bold ${currentPage < totalPages ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'}`;
+        nextBtn.textContent = 'Next →';
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderInvoices(); } };
+        controlsEl.appendChild(nextBtn);
+      }
+    }
+
+    function setInvFilter(cat, btn) {
+      currentFilter = cat;
+      currentPage = 1;
+      document.querySelectorAll('.inv-filter').forEach(b => {
+        b.classList.remove('bg-sky-400', 'text-slate-950');
+        b.classList.add('text-slate-300', 'bg-slate-800');
+      });
+      btn.classList.add('bg-sky-400', 'text-slate-950');
+      btn.classList.remove('text-slate-300', 'bg-slate-800');
+      renderInvoices();
+    }
+
+    function filterInvoices() {
+      searchQuery = document.getElementById('invSearchInput').value;
+      currentPage = 1;
+      renderInvoices();
+    }
+
+    function openReconModal(inv) {
+      activeModalInvId = inv.id;
+      document.getElementById('modalInvNum').textContent = inv.invoice_number;
+      document.getElementById('modalCustomer').textContent = inv.customer;
+      document.getElementById('modalAmount').textContent = '$' + inv.amount.toLocaleString();
+      document.getElementById('modalOrderRef').textContent = inv.order_number || '#ORD-2026-1042';
+
+      const statusEl = document.getElementById('modalStatus');
+      statusEl.textContent = inv.status;
+      statusEl.className = inv.status === 'Paid' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+
+      const btn = document.getElementById('markPaidBtn');
+      if (inv.status === 'Paid') {
+        btn.style.display = 'none';
+      } else {
+        btn.style.display = 'inline-block';
+      }
+
+      document.getElementById('reconModal').classList.remove('hidden');
+    }
+
+    window.openReconModalById = function(id) {
+      const found = allInvoices.find(i => i.id === id);
+      if (found) openReconModal(found);
+    };
+
+    window.closeModal = function() {
+      document.getElementById('reconModal').classList.add('hidden');
+    };
+
+    window.markPaid = function() {
+      if (activeModalInvId) {
+        allInvoices = allInvoices.map(inv => {
+          if (inv.id === activeModalInvId) {
+            return { ...inv, status: 'Paid', reconciled: true };
+          }
+          return inv;
+        });
+
+        // Persist to custom invoices in localStorage if applicable
+        try {
+          let customInvoices = JSON.parse(localStorage.getItem('dealflow360_custom_invoices') || '[]');
+          customInvoices = customInvoices.map(ci => ci.id === activeModalInvId ? { ...ci, status: 'Paid', reconciled: true } : ci);
+          localStorage.setItem('dealflow360_custom_invoices', JSON.stringify(customInvoices));
+        } catch(e) {}
+
+        closeModal();
+        loadMergedInvoices();
+        renderInvoices();
+
+        if (window.showToast) {
+          window.showToast('Invoice marked as Paid & delivery reconciled!', 'success');
+        }
+      }
+    };
+
+    let activePdfInvoice = null;
+
+    function generateInvoiceHTML(inv) {
+      const isPaid = inv.status === 'Paid';
+      const isOverdue = inv.status === 'Overdue';
+      const amount = Number(inv.amount) || 0;
+      const subtotal = (amount / 1.08).toFixed(2);
+      const tax = (amount - Number(subtotal)).toFixed(2);
+      const formattedAmount = amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const formattedSubtotal = Number(subtotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const formattedTax = Number(tax).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      // Realistic item breakdown
+      const itemPrice1 = (Number(subtotal) * 0.65).toFixed(2);
+      const itemPrice2 = (Number(subtotal) * 0.35).toFixed(2);
+
+      return `
+        <div class="space-y-6 text-slate-900" style="font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;">
+          <!-- Top Header: Logo, Company Info & Invoice Status Stamp -->
+          <div class="flex justify-between items-start pb-6 border-b-2 border-slate-900">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-2xl font-black tracking-tight text-slate-950">
+                  DealFlow<span class="text-sky-600">360</span>
+                </span>
+                <span class="text-[10px] font-extrabold uppercase tracking-widest bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300">
+                  Enterprise Ledger
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1 font-medium">DealFlow360 Technologies Inc. • Commercial Billing Operations</p>
+              <p class="text-xs text-slate-500">One Market Plaza, Suite 400 • San Francisco, CA 94105</p>
+              <p class="text-xs text-slate-500">Tax Registration / EIN: 94-8291048-A</p>
+            </div>
+
+            <!-- Payment Status Stamp -->
+            <div class="text-right flex flex-col items-end">
+              <div class="px-4 py-1.5 rounded-lg border-2 font-black text-sm uppercase tracking-widest ${
+                isPaid 
+                  ? 'border-emerald-600 text-emerald-700 bg-emerald-50' 
+                  : (isOverdue ? 'border-rose-600 text-rose-700 bg-rose-50' : 'border-amber-600 text-amber-700 bg-amber-50')
+              }">
+                ${isPaid ? 'PAID IN FULL' : (isOverdue ? 'OVERDUE' : 'PAYMENT DUE')}
+              </div>
+              <span class="text-[11px] font-mono text-slate-500 mt-1 font-semibold">Terms: Net 30 Days</span>
+            </div>
+          </div>
+
+          <!-- Document Title & Key Reference Metadata -->
+          <div class="flex flex-col sm:flex-row justify-between gap-4 pt-2">
+            <div>
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Billed To (Client):</span>
+              <h2 class="text-xl font-black text-slate-950 mt-0.5">${inv.customer}</h2>
+              <p class="text-xs text-slate-600 mt-0.5">Corporate Procurement & Accounts Payable</p>
+              <p class="text-xs text-slate-500 font-mono">Customer Account ID: #CUST-${1000 + (inv.id % 80)}</p>
+            </div>
+
+            <div class="sm:text-right space-y-1 text-xs">
+              <div>
+                <span class="text-slate-500 font-medium">Invoice Number:</span>
+                <span class="font-mono font-black text-slate-900 text-sm ml-1">${inv.invoice_number}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium">Contract / Order Ref:</span>
+                <span class="font-mono font-bold text-sky-700 ml-1">${inv.order_number || '#ORD-2026-1042'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium">Issue Date:</span>
+                <span class="font-mono font-bold text-slate-800 ml-1">${inv.issue_date || '2026-08-15'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 font-medium">Due Date:</span>
+                <span class="font-mono font-black ${isPaid ? 'text-slate-800' : 'text-rose-600'} ml-1">${inv.due_date || '2026-09-15'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Itemized Products and Services Table -->
+          <div class="border border-slate-300 rounded-lg overflow-hidden mt-4">
+            <table class="min-w-full divide-y divide-slate-300 text-xs">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th class="px-4 py-2.5 text-left">Item Description</th>
+                  <th class="px-3 py-2.5 text-left">Category</th>
+                  <th class="px-3 py-2.5 text-center">Qty</th>
+                  <th class="px-3 py-2.5 text-right">Unit Rate</th>
+                  <th class="px-3 py-2.5 text-right">Tax (8%)</th>
+                  <th class="px-4 py-2.5 text-right">Line Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 text-slate-800">
+                <tr>
+                  <td class="px-4 py-3 font-semibold">
+                    <div>Enterprise Network & Infrastructure Deployment</div>
+                    <div class="text-[10px] text-slate-500 font-normal">Primary commercial hardware deployment per quote agreement</div>
+                  </td>
+                  <td class="px-3 py-3 font-medium text-slate-600">Hardware</td>
+                  <td class="px-3 py-3 text-center font-mono">1</td>
+                  <td class="px-3 py-3 text-right font-mono">$${Number(itemPrice1).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td class="px-3 py-3 text-right font-mono">$${(Number(itemPrice1) * 0.08).toFixed(2)}</td>
+                  <td class="px-4 py-3 text-right font-mono font-bold text-slate-950">$${(Number(itemPrice1) * 1.08).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3 font-semibold">
+                    <div>Cloud High-Availability SLA & Threat Sentinel Support</div>
+                    <div class="text-[10px] text-slate-500 font-normal">Monthly continuous monitoring, backup and incident response</div>
+                  </td>
+                  <td class="px-3 py-3 font-medium text-slate-600">Recurring SaaS</td>
+                  <td class="px-3 py-3 text-center font-mono">1</td>
+                  <td class="px-3 py-3 text-right font-mono">$${Number(itemPrice2).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td class="px-3 py-3 text-right font-mono">$${(Number(itemPrice2) * 0.08).toFixed(2)}</td>
+                  <td class="px-4 py-3 text-right font-mono font-bold text-slate-950">$${(Number(itemPrice2) * 1.08).toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals Calculation Summary -->
+          <div class="flex justify-end pt-2">
+            <div class="w-full sm:w-72 space-y-2 text-xs">
+              <div class="flex justify-between text-slate-600">
+                <span>Net Subtotal:</span>
+                <span class="font-mono font-semibold text-slate-900">$${formattedSubtotal}</span>
+              </div>
+              <div class="flex justify-between text-slate-600">
+                <span>Estimated Tax (8.00%):</span>
+                <span class="font-mono font-semibold text-slate-900">$${formattedTax}</span>
+              </div>
+              <div class="flex justify-between pt-2 border-t-2 border-slate-900 text-sm font-black text-slate-950">
+                <span>Total Amount Due:</span>
+                <span class="font-mono text-base text-sky-700">$${formattedAmount}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Remittance / Payment Instructions & Wire Info -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-200 text-xs">
+            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+              <span class="font-bold text-slate-900 text-[11px] uppercase tracking-wider">Wire Transfer Remittance Details</span>
+              <p class="text-slate-600"><strong class="text-slate-800">Bank:</strong> Bank of America Commercial Wire</p>
+              <p class="text-slate-600"><strong class="text-slate-800">Account #:</strong> 9821-4401-2098</p>
+              <p class="text-slate-600"><strong class="text-slate-800">Routing / ABA:</strong> 121000358</p>
+              <p class="text-slate-600"><strong class="text-slate-800">SWIFT / BIC:</strong> BOFAUS3N</p>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-200 flex flex-col justify-between">
+              <div>
+                <span class="font-bold text-slate-900 text-[11px] uppercase tracking-wider">Commercial Terms & Warranty</span>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                  Payment is due strictly according to Net 30 agreement. For billing queries contact accounting@dealflow360.com.
+                </p>
+              </div>
+              <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-500">
+                <span>Authorized Financial Controller</span>
+                <span class="font-mono font-bold text-slate-700">Rachel Iyer, VP Finance</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Seal -->
+          <div class="text-center pt-4 border-t border-slate-200 text-[10px] text-slate-400 font-medium">
+            DealFlow360 B2B Enterprise Quoting & Billing Platform • Official Computer-Generated Document
+          </div>
+        </div>
+      `;
+    }
+
+    window.printInvoicePDF = function(invId) {
+      const inv = allInvoices.find(i => i.id === invId);
+      if (!inv) return;
+
+      activePdfInvoice = inv;
+      const sheet = document.getElementById('invoicePrintSheet');
+      const titleEl = document.getElementById('pdfModalTitle');
+      const subTitleEl = document.getElementById('pdfModalSubtitle');
+
+      if (titleEl) titleEl.textContent = `Invoice Document • ${inv.invoice_number}`;
+      if (subTitleEl) subTitleEl.textContent = `Client: ${inv.customer} • Amount: $${inv.amount.toLocaleString()} (${inv.status})`;
+
+      if (sheet) {
+        sheet.innerHTML = generateInvoiceHTML(inv);
+      }
+
+      const modal = document.getElementById('invoicePdfModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    };
+
+    window.closeInvoicePdfModal = function() {
+      const modal = document.getElementById('invoicePdfModal');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    };
+
+    window.triggerDirectPrint = function() {
+      const sheet = document.getElementById('invoicePrintSheet');
+      if (!sheet) return;
+
+      const printWindow = window.open('', '_blank', 'width=840,height=920');
+      if (!printWindow) {
+        window.print();
+        return;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${activePdfInvoice ? activePdfInvoice.invoice_number : 'Invoice'} - DealFlow360</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            * { box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; color: #0f172a; background: #fff; }
+            @page { size: A4 portrait; margin: 10mm; }
+          </style>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+          <script src="https://cdn.tailwindcss.com"><\/script>
+        </head>
+        <body onload="window.focus(); setTimeout(() => { window.print(); }, 450);">
+          <div style="max-width: 800px; margin: 0 auto;">
+            ${sheet.innerHTML}
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    };
+
+    window.downloadInvoicePDFFile = function() {
+      const sheet = document.getElementById('invoicePrintSheet');
+      if (!sheet) return;
+
+      const filename = activePdfInvoice ? `Invoice_${activePdfInvoice.invoice_number}.pdf` : 'Invoice.pdf';
+      const btn = document.getElementById('downloadPdfBtn');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span>Generating PDF...</span>';
+
+      if (window.html2pdf) {
+        const opt = {
+          margin: 8,
+          filename: filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        window.html2pdf().set(opt).from(sheet).save().then(() => {
+          if (btn) btn.innerHTML = origText;
+          if (window.showToast) window.showToast(`Downloaded ${filename} in PDF format!`, 'success');
+        }).catch(err => {
+          console.error(err);
+          if (btn) btn.innerHTML = origText;
+          window.triggerDirectPrint();
+        });
+      } else {
+        if (btn) btn.innerHTML = origText;
+        window.triggerDirectPrint();
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMergedInvoices();
+      renderInvoices();
+    });
+
+    window.addEventListener('storage', () => {
+      loadMergedInvoices();
+      renderInvoices();
+    });
+
+    window.addEventListener('dealflow360_billing_updated', () => {
+      loadMergedInvoices();
+      renderInvoices();
+    });
+  </script>
+</Layout>

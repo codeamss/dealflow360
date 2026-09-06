@@ -8,27 +8,27 @@ import Layout from '../Layout.astro';
       
       <!-- Brand Header -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-2xl shadow-lg shadow-indigo-200 mb-4 mx-auto">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl shadow-xl shadow-sky-500/20 mb-4 mx-auto border border-sky-400/30">
           <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
         </div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Create Account</h1>
-        <p class="text-slate-600 text-sm mt-1">
-          Join DealFlow360 to manage B2B sales pipelines and quotations
+        <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Create Customer Account</h1>
+        <p class="text-slate-400 text-sm mt-1 font-medium">
+          Join DealFlow360 Customer Portal to review proposals and manage quotations
         </p>
       </div>
 
       <!-- Register Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-8">
-        <div id="registerError" class="hidden mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="bg-slate-900/90 rounded-2xl border border-slate-700/80 shadow-2xl p-6 sm:p-8 text-white">
+        <div id="registerError" class="hidden mb-5 p-3.5 bg-rose-950/40 border border-rose-500/40 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span id="registerErrorMsg"></span>
         </div>
 
         <form id="register-form" class="space-y-4">
           <div>
-            <label for="name" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+            <label for="name" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Full Name
             </label>
             <input
@@ -36,13 +36,13 @@ import Layout from '../Layout.astro';
               id="name"
               name="name"
               required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
               placeholder="e.g. Jordan Miller"
             />
           </div>
 
           <div>
-            <label for="email" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+            <label for="email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Work Email Address
             </label>
             <input
@@ -50,32 +50,26 @@ import Layout from '../Layout.astro';
               id="email"
               name="email"
               required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
               placeholder="jordan@company.com"
             />
           </div>
 
-          <div>
-            <label for="role" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-              Platform Role
-            </label>
-            <select
-              id="role"
-              name="role"
-              required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 transition-all"
-            >
-              <option value="Sales Rep">Sales Representative (Create & manage quotes)</option>
-              <option value="Sales Manager">Sales Manager (Approve discounts & pipeline)</option>
-              <option value="Finance">Finance Executive (Review high-discount quotas)</option>
-              <option value="Admin">System Administrator (Full access)</option>
-              <option value="Customer">Customer (Customer Quote Portal access)</option>
-            </select>
+          <div class="rounded-xl border border-sky-500/30 bg-sky-950/40 p-3.5 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-sky-200 uppercase tracking-wider">Assigned Role</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-sky-400 text-slate-950 shadow-sm">
+                Customer (Portal Access)
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-normal">
+              New accounts enroll strictly as <strong>Customer</strong>. Internal company roles (Sales Rep, Sales Manager, Finance, Admin) can only be granted by an Administrator.
+            </p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+              <label for="password" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Password
               </label>
               <input
@@ -84,13 +78,13 @@ import Layout from '../Layout.astro';
                 name="password"
                 required
                 minlength="6"
-                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
                 placeholder="At least 6 characters"
               />
             </div>
 
             <div>
-              <label for="confirmPassword" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+              <label for="confirmPassword" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Confirm Password
               </label>
               <input
@@ -99,7 +93,7 @@ import Layout from '../Layout.astro';
                 name="confirmPassword"
                 required
                 minlength="6"
-                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+                class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
                 placeholder="Repeat password"
               />
             </div>
@@ -109,26 +103,25 @@ import Layout from '../Layout.astro';
             <button
               type="submit"
               id="submitBtn"
-              class="w-full flex justify-center py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-200 active:scale-[0.99] transition-all"
+              class="w-full flex justify-center py-3 px-4 bg-sky-400 hover:bg-sky-300 text-slate-950 text-sm font-black rounded-xl shadow-lg active:scale-[0.99] transition-all cursor-pointer"
             >
-              Create Account
+              Register Customer Account
             </button>
           </div>
 
           <div class="text-center pt-2">
-            <a href="/login" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+            <a href="/login" class="text-sm text-sky-400 hover:text-sky-300 font-semibold transition-colors">
               Already have an account? Sign in here →
             </a>
           </div>
         </form>
 
-        <div class="mt-6 pt-5 border-t border-slate-100">
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-600">
-            <span class="font-semibold text-slate-800">Role Permissions Guide:</span>
-            <ul class="mt-1.5 space-y-1 text-slate-500">
-              <li>• <strong>Sales Rep:</strong> Build quotations, view product inventory, request discounts</li>
-              <li>• <strong>Sales Manager & Finance:</strong> Review risk scores, approve or reject proposals</li>
-              <li>• <strong>Customer:</strong> Access negotiation portal to submit counter-offers</li>
+        <div class="mt-6 pt-5 border-t border-slate-800">
+          <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 text-xs text-slate-300">
+            <span class="font-bold text-white">Enterprise Role Governance:</span>
+            <ul class="mt-1.5 space-y-1.5 text-slate-400">
+              <li>• <strong class="text-sky-300">Customer Access:</strong> Inspect and countersign quotes, submit counter-offers directly via Customer Portal.</li>
+              <li>• <strong class="text-amber-400">Admin-Only Role Assignment:</strong> Only an Administrator can assign internal roles (Sales Rep, Sales Manager, Finance, Admin). Contact your system admin for role elevation.</li>
             </ul>
           </div>
         </div>
@@ -166,6 +159,20 @@ import Layout from '../Layout.astro';
       }
     }
 
+    // Helper to persist user to all_users list for Admin role governance
+    function syncUserToAdminList(userObj) {
+      try {
+        let allUsers = JSON.parse(localStorage.getItem('dealflow360_all_users') || '[]');
+        const existingIdx = allUsers.findIndex(u => u.email.toLowerCase() === userObj.email.toLowerCase());
+        if (existingIdx >= 0) {
+          allUsers[existingIdx] = { ...allUsers[existingIdx], ...userObj };
+        } else {
+          allUsers.push(userObj);
+        }
+        localStorage.setItem('dealflow360_all_users', JSON.stringify(allUsers));
+      } catch (e) {}
+    }
+
     if (regForm) {
       regForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -173,7 +180,7 @@ import Layout from '../Layout.astro';
 
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
-        const role = document.getElementById('role').value;
+        const role = 'Customer'; // Enforced: all self-registrations are Customer accounts
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -188,7 +195,7 @@ import Layout from '../Layout.astro';
         }
 
         const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Creating Account...';
+        submitBtn.textContent = 'Registering Customer Account...';
         submitBtn.disabled = true;
 
         try {
@@ -196,37 +203,53 @@ import Layout from '../Layout.astro';
           const response = await fetch('http://localhost:8000/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password, role })
+            body: JSON.stringify({ name, email, password, role: 'Customer' })
           });
 
           if (response.ok) {
             const data = await response.json();
             localStorage.setItem('dealflow360_user', JSON.stringify(data.user));
             localStorage.setItem('dealflow360_token', data.access_token);
-            if (window.showToast) window.showToast('Account created successfully!', 'success');
+            syncUserToAdminList({
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              role: 'Customer',
+              created_at: new Date().toISOString()
+            });
+
+            if (window.showToast) window.showToast('Customer account created successfully!', 'success');
             setTimeout(() => {
-              window.location.href = data.user.role === 'Customer' ? '/portal/quote/1001' : '/pipeline';
+              window.location.href = '/portal/quote/1001';
             }, 400);
+            return;
+          } else {
+            const errData = await response.json();
+            showError(errData.detail || 'Registration failed');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
             return;
           }
         } catch (err) {
           console.warn('Backend unavailable, using client demo account creation');
         }
 
-        // Demo fallback registration
+        // Demo fallback registration (always Customer)
         const newUserData = {
           id: Date.now(),
           name,
           email,
-          role
+          role: 'Customer',
+          created_at: new Date().toISOString()
         };
         localStorage.setItem('dealflow360_user', JSON.stringify(newUserData));
-        localStorage.setItem('dealflow360_token', `demo_token_${Date.now()}`);
+        localStorage.setItem('dealflow360_token', `demo_token_customer_${Date.now()}`);
+        syncUserToAdminList(newUserData);
 
-        if (window.showToast) window.showToast(`Welcome, ${name}! Account registered.`, 'success');
+        if (window.showToast) window.showToast(`Welcome, ${name}! Logged in as Customer.`, 'success');
         
         setTimeout(() => {
-          window.location.href = role === 'Customer' ? '/portal/quote/1001' : '/pipeline';
+          window.location.href = '/portal/quote/1001';
         }, 400);
       });
     }

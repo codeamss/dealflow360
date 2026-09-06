@@ -1,27 +1,128 @@
 ---
 export interface Props {
   title?: string;
+  activeModule?: string;
 }
 
-const { title = "DealFlow360" } = Astro.props;
+const { title = "DealFlow360", activeModule } = Astro.props;
 const currentPath = Astro.url.pathname;
+const isAuthPage = currentPath === '/login' || currentPath === '/register';
+
+// Determine active module based on path or prop
+const getActive = (module: string) => {
+  if (activeModule) return activeModule.toLowerCase() === module.toLowerCase();
+  if (module === 'Dashboard' && currentPath === '/') return true;
+  if (module === 'Quotations' && currentPath.startsWith('/pipeline')) return true;
+  if (module === 'Approvals' && currentPath.startsWith('/approvals')) return true;
+  if (module === 'Fulfillment' && currentPath.startsWith('/fulfillment')) return true;
+  if (module === 'Subscriptions' && currentPath.startsWith('/subscriptions')) return true;
+  if (module === 'Invoices' && currentPath.startsWith('/invoices')) return true;
+  if (module === 'Deal Health' && currentPath.startsWith('/deal-health')) return true;
+  if (module === 'Reports' && currentPath.startsWith('/reports')) return true;
+  if (module === 'Product' && (currentPath.startsWith('/products') || currentPath.startsWith('/quotation/new'))) return true;
+  if (module === 'Governance' && currentPath.startsWith('/settings')) return true;
+  return false;
+};
 ---
 
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-50 antialiased">
+<html lang="en" class="h-full bg-slate-900 antialiased">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <title>{title}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  <script is:inline>
+    // Early Route Guard: Enforce /login as mandatory entering gate & RBAC Customer boundary
+    (function() {
+      var path = window.location.pathname;
+      var isAuth = path === '/login' || path === '/register';
+      var userRaw = localStorage.getItem('dealflow360_user');
+      if (!isAuth && !userRaw) {
+        window.location.href = '/login';
+        return;
+      }
+      if (userRaw && !isAuth) {
+        try {
+          var userObj = JSON.parse(userRaw);
+          // Block Customers from accessing internal sales operations routes
+          var isInternalPath = path === '/' || 
+            path.startsWith('/pipeline') || 
+            path.startsWith('/approvals') || 
+            path.startsWith('/fulfillment') || 
+            path.startsWith('/deal-health') || 
+            path.startsWith('/reports') || 
+            path.startsWith('/products') ||
+            path.startsWith('/settings');
+
+          if (userObj.role === 'Customer' && isInternalPath) {
+            window.location.href = '/portal/quote/1001';
+          }
+        } catch (e) {}
+      }
+    })();
+  </script>
+  <!-- Modern Enterprise Font Engine: Plus Jakarta Sans, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" />
+
+  <style is:global>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
     * { 
       box-sizing: border-box; 
     }
-    html, body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    html {
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'calt';
+      scroll-behavior: smooth;
     }
+
+    body {
+      font-family: var(--font-sans);
+      letter-spacing: -0.011em;
+      line-height: 1.5;
+    }
+
+    /* Headings hierarchy with calibrated optical kerning */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-sans);
+      letter-spacing: -0.025em;
+      text-wrap: balance;
+    }
+
+    /* Code, numeric data, table metrics, currency amounts */
+    .font-mono,
+    code,
+    kbd,
+    samp,
+    pre,
+    [data-mono] {
+      font-family: var(--font-mono) !important;
+      font-feature-settings: 'tnum' on, 'zero' on;
+      font-variant-numeric: tabular-nums slashed-zero;
+      letter-spacing: -0.015em;
+    }
+
+    /* Standardize form inputs & buttons to inherit geometric fonts */
+    input, button, select, textarea {
+      font-family: inherit;
+    }
+
+    /* Premium text selection highlighting */
+    ::selection {
+      background-color: rgba(56, 189, 248, 0.3);
+      color: #ffffff;
+    }
+
     .toast-enter {
       animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -36,149 +137,317 @@ const currentPath = Astro.url.pathname;
       from { opacity: 1; transform: translateY(0) scale(1); }
       to { opacity: 0; transform: translateY(-12px) scale(0.96); }
     }
+    /* Yellow Callout Style matching Excalidraw */
+    .excalidraw-callout {
+      border: 1.5px solid #ca8a04;
+      background-color: rgba(254, 240, 138, 0.12);
+      color: #fef08a;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.8125rem;
+      font-style: italic;
+    }
+    .excalidraw-callout-light {
+      border: 1.5px solid #eab308;
+      background-color: #fefce8;
+      color: #854d0e;
+      border-radius: 0.5rem;
+      padding: 0.625rem 1rem;
+      font-size: 0.8125rem;
+      font-style: italic;
+    }
+    /* Complete scrollbar elimination for navigation and custom scroll elements */
+    nav, nav * {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    nav::-webkit-scrollbar,
+    nav *::-webkit-scrollbar,
+    .scrollbar-none::-webkit-scrollbar,
+    .no-scrollbar::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      background: transparent !important;
+    }
+    .scrollbar-none,
+    .no-scrollbar {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    /* Form input & select contrast safeguards */
+    select option {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: #94a3b8 !important;
+      opacity: 1 !important;
+    }
   </style>
 </head>
-<body class="min-h-full flex flex-col bg-slate-50 text-slate-900">
+<body class="min-h-full flex flex-col bg-slate-900 text-slate-100">
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none" aria-live="polite"></div>
 
-  <!-- Navigation -->
-  <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 transition-shadow duration-200 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        
-        <!-- Brand & Nav Links -->
-        <div class="flex items-center gap-8">
-          <a href="/" class="flex items-center gap-2.5 group transition-transform active:scale-95">
-            <div class="w-9 h-9 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-md shadow-indigo-200 group-hover:shadow-indigo-300 transition-all">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div class="flex flex-col">
-              <span class="text-base font-bold tracking-tight text-slate-900 leading-none">DealFlow<span class="text-indigo-600">360</span></span>
-              <span class="text-[10px] font-medium text-slate-500 tracking-wider uppercase mt-0.5">B2B Sales Engine</span>
-            </div>
+  {isAuthPage ? (
+    <!-- Auth Gateway Navigation Bar (Clean & Protected) -->
+    <nav class="bg-sky-400 border-b-2 border-sky-500/80 sticky top-0 z-50 shadow-md">
+      <div class="max-w-[1700px] mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-14">
+          <a href="/login" class="flex items-center gap-2 group">
+            <span class="text-lg font-black tracking-tight text-slate-950">
+              DealFlow<span class="text-indigo-900">360</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] font-bold bg-slate-900 text-sky-300 px-2.5 py-0.5 rounded-full border border-sky-600/30 uppercase tracking-wider">
+              Security Gateway
+            </span>
           </a>
+          <div class="flex items-center gap-2">
+            <a 
+              href="/login" 
+              class={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all ${
+                currentPath === '/login' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-950 hover:bg-sky-300'
+              }`}
+            >
+              Sign In
+            </a>
+            <a 
+              href="/register" 
+              class={`text-xs font-bold px-3.5 py-1.5 rounded-lg transition-all ${
+                currentPath === '/register' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-900/10 text-slate-950 hover:bg-sky-300 border border-slate-900/20'
+              }`}
+            >
+              Create Account
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  ) : (
+    <!-- Excalidraw Sky-Blue Navigation Bar -->
+    <nav class="bg-sky-400 border-b-2 border-sky-500/80 sticky top-0 z-50 shadow-md">
+      <div class="max-w-[1700px] mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-14">
           
-          <!-- Desktop Navigation Links -->
-          <div class="hidden md:flex items-center gap-1.5" id="desktopNav">
-            <a 
-              href="/" 
-              class={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${currentPath === '/' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'}`}
-            >
-              Dashboard
+          <!-- Left: Brand Logo & Navigation Pills -->
+          <div class="flex items-center gap-3 xl:gap-5 py-1 min-w-0">
+            <!-- Brand Logo -->
+            <a href="/" class="flex items-center gap-2 group flex-shrink-0">
+              <span class="text-lg font-black tracking-tight text-slate-950 hover:text-slate-800 transition-colors">
+                DealFlow<span class="text-indigo-900">360</span>
+              </span>
             </a>
+
+            <!-- Pill Navigation Tabs (Exact Excalidraw Modules) -->
+            <div class="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-shrink-0" id="modulePills">
+              <a 
+                href="/" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Dashboard') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Dashboard
+              </a>
+              <a 
+                href="/pipeline" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Quotations') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Quotations
+              </a>
+              <a 
+                href="/approvals" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Approvals') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Approvals
+              </a>
+              <a 
+                href="/fulfillment" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Fulfillment') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Fulfillment
+              </a>
+              <a 
+                href="/subscriptions" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Subscriptions') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Subscriptions
+              </a>
+              <a 
+                href="/invoices" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Invoices') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Invoices
+              </a>
+              <a 
+                href="/deal-health" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Deal Health') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Deal Health
+              </a>
+              <a 
+                href="/reports" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Reports') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Reports
+              </a>
+              <a 
+                href="/products" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Product') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+              >
+                Product
+              </a>
+              <a 
+                href="/settings" 
+                class={`px-2.5 2xl:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  getActive('Governance') 
+                    ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950' 
+                    : 'bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40'
+                }`}
+                title="Admin Role Governance & Discount Rules"
+              >
+                Governance
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Side: Excalidraw Persona Circles & Persona Switcher & Sign Out -->
+          <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <!-- Persona Circle Avatars (from Excalidraw: P, G, D, S, V, G, L, L) -->
+            <div class="hidden 2xl:flex items-center -space-x-1.5">
+              <span class="w-6 h-6 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="P - Product Operations">P</span>
+              <span class="w-6 h-6 rounded-full bg-cyan-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="G - Growth Marketing">G</span>
+              <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="D - Deals & Commercial">D</span>
+              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="S - Sales Manager">S</span>
+              <span class="w-6 h-6 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="V - VP Finance">V</span>
+              <span class="w-6 h-6 rounded-full bg-teal-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="G - General Governance">G</span>
+              <span class="w-6 h-6 rounded-full bg-amber-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="L - Logistics Lead">L</span>
+              <span class="w-6 h-6 rounded-full bg-rose-600 text-white text-[10px] font-black flex items-center justify-center border-2 border-sky-400 shadow-sm" title="L - Legal Controller">L</span>
+            </div>
+
+            <!-- Active User Profile Display (Click to open Governance/Settings) -->
             <a 
-              href="/pipeline" 
-              class={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${currentPath.startsWith('/pipeline') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'}`}
-              id="navLinkPipeline"
+              href="/settings"
+              title="Click to manage Role Governance & Settings"
+              class="flex items-center gap-2 bg-slate-950/90 hover:bg-slate-950 text-white px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-950 hover:border-sky-400/60 shadow-sm flex-shrink-0 transition-all cursor-pointer group" 
+              id="navUserProfile"
             >
-              Pipeline
+              <div class="w-6 h-6 rounded-md bg-sky-400 text-slate-950 font-black text-xs flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform" id="navUserAvatar">
+                U
+              </div>
+              <div class="flex flex-col text-left leading-tight">
+                <span class="text-xs font-bold text-white truncate max-w-[110px] sm:max-w-[150px]" id="navUserName">User</span>
+                <span class="text-[10px] text-sky-300 font-semibold" id="navUserRole">Role</span>
+              </div>
             </a>
-            <a 
-              href="/quotation/new" 
-              class={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${currentPath.startsWith('/quotation/new') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'}`}
-              id="navLinkNewQuote"
+
+            <!-- Sign Out Button -->
+            <button 
+              type="button" 
+              onclick="window.signOut()"
+              class="bg-slate-950/90 hover:bg-slate-950 text-rose-300 hover:text-white px-2.5 py-1.5 rounded-lg border border-slate-950 text-xs font-bold shadow-sm transition-all flex items-center gap-1"
+              title="Sign out of current session"
             >
-              New Quote
-            </a>
-            <a 
-              href="/settings" 
-              class={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${currentPath.startsWith('/settings') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'}`}
-              id="navLinkSettings"
+              <span>Sign Out</span>
+            </button>
+
+            <!-- Mobile Hamburger Toggle -->
+            <button 
+              id="mobileMenuToggle" 
+              type="button" 
+              aria-label="Toggle navigation menu"
+              class="lg:hidden p-1.5 text-slate-950 hover:bg-sky-300 rounded-lg transition-colors focus:outline-none"
             >
-              Settings
-            </a>
+              <svg id="menuOpenIcon" class="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg id="menuCloseIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
-
-        <!-- Right Side: User Profile & Mobile Toggle -->
-        <div class="flex items-center gap-3">
-          <div id="userInfo" class="flex items-center">
-            <div class="h-8 w-24 bg-slate-100 animate-pulse rounded-lg"></div>
-          </div>
-
-          <!-- Mobile Hamburger Toggle -->
-          <button 
-            id="mobileMenuToggle" 
-            type="button" 
-            aria-label="Toggle navigation menu"
-            class="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-          >
-            <svg id="menuOpenIcon" class="w-6 h-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg id="menuCloseIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
       </div>
-    </div>
 
-    <!-- Mobile Drawer Menu -->
-    <div id="mobileDrawer" class="hidden md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-5 space-y-1.5 shadow-lg">
-      <a 
-        href="/" 
-        class={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${currentPath === '/' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-      >
-        Dashboard
-      </a>
-      <a 
-        href="/pipeline" 
-        id="mobileNavLinkPipeline"
-        class={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${currentPath.startsWith('/pipeline') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-      >
-        Pipeline
-      </a>
-      <a 
-        href="/quotation/new" 
-        id="mobileNavLinkNewQuote"
-        class={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${currentPath.startsWith('/quotation/new') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-      >
-        New Quotation
-      </a>
-      <a 
-        href="/settings" 
-        id="mobileNavLinkSettings"
-        class={`block px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${currentPath.startsWith('/settings') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-700 hover:bg-slate-100'}`}
-      >
-        Settings
-      </a>
-      <div class="pt-3 border-t border-slate-100 flex justify-between items-center px-1">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">DealFlow360 Platform</span>
-        <span class="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full font-medium">v2.0</span>
+      <!-- Mobile Drawer Menu -->
+      <div id="mobileDrawer" class="hidden lg:hidden border-t border-sky-500 bg-sky-300 px-4 pt-3 pb-4 space-y-1 shadow-lg">
+        <a href="/" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Dashboard</a>
+        <a href="/pipeline" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Quotations</a>
+        <a href="/approvals" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Approvals</a>
+        <a href="/fulfillment" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Fulfillment</a>
+        <a href="/subscriptions" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Subscriptions</a>
+        <a href="/invoices" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Invoices</a>
+        <a href="/deal-health" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Deal Health</a>
+        <a href="/reports" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Reports</a>
+        <a href="/products" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Product Studio</a>
+        <a href="/settings" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Governance & Roles</a>
       </div>
-    </div>
-  </nav>
+    </nav>
+  )}
 
-  <!-- Main Content Area -->
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+  <!-- Main Content Canvas (Dark Slate styling matching Excalidraw) -->
+  <main class="flex-1 w-full max-w-[1700px] mx-auto px-4 sm:px-6 py-6">
     <slot />
   </main>
 
-  <!-- Global Modern Footer -->
-  <footer class="bg-white border-t border-slate-200 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-        <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span>System Operational • All Services Connected</span>
-        </div>
-        <div>
-          © 2026 DealFlow360 Inc. Enterprise B2B Sales Platform.
-        </div>
-        <div class="flex gap-4">
-          <a href="#" class="hover:text-slate-700 transition-colors">Documentation</a>
-          <a href="#" class="hover:text-slate-700 transition-colors">Security</a>
-          <a href="#" class="hover:text-slate-700 transition-colors">Support</a>
-        </div>
+  <!-- Global Footer -->
+  <footer class="bg-slate-950 border-t border-slate-800 text-slate-400 text-xs py-5 mt-auto">
+    <div class="max-w-[1700px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        <span class="font-semibold text-slate-300">DealFlow360</span>
+        <span class="text-slate-600">•</span>
+        <span>Enterprise Sales Operations Platform</span>
+      </div>
+      <div class="text-slate-500 text-[11px]">
+        &copy; {new Date().getFullYear()} DealFlow360 Inc. All systems operational.
+      </div>
+      <div class="flex items-center gap-4 text-slate-400">
+        <a href="/pipeline" class="hover:text-white transition-colors">Pipeline</a>
+        <a href="/approvals" class="hover:text-white transition-colors">Approvals</a>
+        <a href="/fulfillment" class="hover:text-white transition-colors">Fulfillment</a>
+        <a href="/products" class="hover:text-white transition-colors">Products</a>
+        <a href="/settings" class="hover:text-white transition-colors">Settings</a>
       </div>
     </div>
   </footer>
 
-  <!-- Core Client Scripts: Auth, Mobile Nav, Global Toast -->
+  <!-- Scripts for Toast, Persona Switching, Mobile Nav -->
   <script is:inline>
     // Global Toast Notification Helper
     window.showToast = function(message, type = 'success') {
@@ -186,29 +455,29 @@ const currentPath = Astro.url.pathname;
       if (!container) return;
 
       const toast = document.createElement('div');
-      toast.className = 'toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all max-w-md';
+      toast.className = 'toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-medium transition-all max-w-md';
       
       if (type === 'success') {
-        toast.className += ' bg-white border-emerald-200 text-slate-800 shadow-emerald-500/10';
+        toast.className += ' bg-slate-900 border-emerald-500 text-white shadow-emerald-500/20';
         toast.innerHTML = `
-          <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          <div class="w-6 h-6 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center flex-shrink-0 font-bold">
+            ✓
           </div>
           <span class="flex-1">${message}</span>
         `;
       } else if (type === 'error') {
-        toast.className += ' bg-white border-rose-200 text-slate-800 shadow-rose-500/10';
+        toast.className += ' bg-slate-900 border-rose-500 text-white shadow-rose-500/20';
         toast.innerHTML = `
-          <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <div class="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center flex-shrink-0 font-bold">
+            ✕
           </div>
           <span class="flex-1">${message}</span>
         `;
       } else {
-        toast.className += ' bg-white border-indigo-200 text-slate-800 shadow-indigo-500/10';
+        toast.className += ' bg-slate-900 border-sky-400 text-white shadow-sky-400/20';
         toast.innerHTML = `
-          <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="w-6 h-6 rounded-lg bg-sky-400 text-slate-950 flex items-center justify-center flex-shrink-0 font-bold">
+            ℹ
           </div>
           <span class="flex-1">${message}</span>
         `;
@@ -223,111 +492,88 @@ const currentPath = Astro.url.pathname;
       }, 3500);
     };
 
-    // User authentication state handling in Layout
-    function updateAuthUI() {
-      const user = localStorage.getItem('dealflow360_user');
-      const token = localStorage.getItem('dealflow360_token');
-      const userInfoDiv = document.getElementById('userInfo');
-      if (!userInfoDiv) return;
+    // Persona Switcher Handler
+    window.switchPersona = function(role) {
+      const personaMap = {
+        'Sales Rep': { name: 'Sarah Jenkins', email: 'sarah.j@dealflow360.com', role: 'Sales Rep' },
+        'Sales Manager': { name: 'Sarah Chen', email: 'sarah.chen@dealflow360.com', role: 'Sales Manager' },
+        'Finance': { name: 'Rachel Iyer', email: 'rachel.iyer@dealflow360.com', role: 'Finance' },
+        'Customer': { name: 'Alex Miller (Acme Corp)', email: 'procurement@acme.com', role: 'Customer' },
+        'Admin': { name: 'System Administrator', email: 'admin@dealflow360.com', role: 'Admin' }
+      };
 
-      if (user && token) {
-        try {
-          const userData = JSON.parse(user);
-          const isCustomer = userData.role === 'Customer';
-          const initials = (userData.name || 'User')
-            .split(' ')
-            .map(n => n[0])
-            .join('')
-            .toUpperCase()
-            .substring(0, 2);
+      const user = personaMap[role] || personaMap['Sales Rep'];
+      localStorage.setItem('dealflow360_user', JSON.stringify(user));
+      localStorage.setItem('dealflow360_token', 'mock_token_' + Date.now());
 
-          const roleColors = {
-            'Customer': 'bg-orange-50 text-orange-700 border-orange-200',
-            'Sales Rep': 'bg-blue-50 text-blue-700 border-blue-200',
-            'Sales Manager': 'bg-indigo-50 text-indigo-700 border-indigo-200',
-            'Finance': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-            'Admin': 'bg-purple-50 text-purple-700 border-purple-200'
-          };
-          const badgeClass = roleColors[userData.role] || 'bg-slate-100 text-slate-700 border-slate-200';
-
-          userInfoDiv.innerHTML = `
-            <div class="flex items-center gap-2.5">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                  ${initials}
-                </div>
-                <div class="hidden sm:block text-left">
-                  <div class="text-xs font-semibold text-slate-800 leading-tight">${userData.name || userData.email}</div>
-                  <span class="inline-block text-[10px] font-medium px-1.5 py-0.2 rounded border ${badgeClass} mt-0.5 leading-tight">
-                    ${userData.role}
-                  </span>
-                </div>
-              </div>
-              <button 
-                onclick="logout()" 
-                title="Sign out of account"
-                class="px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-lg transition-colors flex items-center gap-1"
-              >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                <span class="hidden md:inline">Sign out</span>
-              </button>
-            </div>
-          `;
-
-          // Adapt links for customer role
-          const newQuoteLink = document.getElementById('navLinkNewQuote');
-          const mobileNewQuoteLink = document.getElementById('mobileNavLinkNewQuote');
-          const pipelineLink = document.getElementById('navLinkPipeline');
-          const mobilePipelineLink = document.getElementById('mobileNavLinkPipeline');
-
-          if (isCustomer) {
-            if (newQuoteLink) newQuoteLink.style.display = 'none';
-            if (mobileNewQuoteLink) mobileNewQuoteLink.style.display = 'none';
-            if (pipelineLink) {
-              pipelineLink.href = '/portal/quote/1001';
-              pipelineLink.textContent = 'Quote Portal';
-            }
-            if (mobilePipelineLink) {
-              mobilePipelineLink.href = '/portal/quote/1001';
-              mobilePipelineLink.textContent = 'Quote Portal';
-            }
-          }
-        } catch (e) {
-          console.error("Error parsing user data in Layout:", e);
-          renderSignInButton(userInfoDiv);
-        }
-      } else {
-        renderSignInButton(userInfoDiv);
+      if (window.showToast) {
+        window.showToast(`Switched active persona to ${user.name} (${user.role})`, 'info');
       }
-    }
 
-    function renderSignInButton(container) {
-      container.innerHTML = `
-        <a 
-          href="/login" 
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-xs font-medium rounded-lg shadow-sm shadow-indigo-200 transition-all"
-        >
-          <span>Sign In</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-        </a>
-      `;
-    }
+      if (role === 'Customer') {
+        setTimeout(() => { window.location.href = '/portal/quote/1001'; }, 300);
+      } else {
+        setTimeout(() => { window.location.reload(); }, 300);
+      }
+    };
 
-    function logout() {
+    // Global Sign Out Helper
+    window.signOut = function() {
       localStorage.removeItem('dealflow360_user');
       localStorage.removeItem('dealflow360_token');
       if (window.showToast) {
-        window.showToast('Signed out successfully', 'info');
+        window.showToast('Signed out of DealFlow360', 'info');
       }
       setTimeout(() => {
         window.location.href = '/login';
-      }, 300);
-    }
+      }, 250);
+    };
 
-    // Mobile Menu Toggle
+    // Initialize Persona dropdown and role-based navigation adjustments
     document.addEventListener('DOMContentLoaded', () => {
-      updateAuthUI();
+      const stored = localStorage.getItem('dealflow360_user');
+      if (stored) {
+        try {
+          const user = JSON.parse(stored);
+          const nameEl = document.getElementById('navUserName');
+          const roleEl = document.getElementById('navUserRole');
+          const avatarEl = document.getElementById('navUserAvatar');
+          if (nameEl && user.name) nameEl.textContent = user.name;
+          if (roleEl && user.role) roleEl.textContent = user.role;
+          if (avatarEl && user.name) avatarEl.textContent = user.name.charAt(0).toUpperCase();
 
+          // If current session is a Customer, customize navigation bar to customer portal and billing
+          if (user.role === 'Customer') {
+            const pills = document.getElementById('modulePills');
+            if (pills) {
+              pills.innerHTML = `
+                <a href="/portal/quote/1001" class="px-3.5 py-1.5 rounded-full text-xs font-black bg-slate-900 text-white shadow-sm ring-1 ring-slate-950 flex items-center gap-1.5">
+                  <span>Customer Quote Portal (#1001)</span>
+                </a>
+                <a href="/invoices" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40 transition-all flex items-center gap-1.5">
+                  <span>Billing & Invoices</span>
+                </a>
+                <a href="/subscriptions" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-sky-300/40 text-slate-950 hover:bg-sky-300 border border-sky-500/40 transition-all flex items-center gap-1.5">
+                  <span>Subscriptions</span>
+                </a>
+                <span class="text-[11px] font-bold text-slate-950 bg-sky-300/80 px-3 py-1 rounded-full border border-sky-600/30">
+                  Role: Customer
+                </span>
+              `;
+            }
+            const drawer = document.getElementById('mobileDrawer');
+            if (drawer) {
+              drawer.innerHTML = `
+                <a href="/portal/quote/1001" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Customer Quote Portal</a>
+                <a href="/invoices" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Billing & Invoices</a>
+                <a href="/subscriptions" class="block px-3 py-2 rounded-lg text-sm font-bold text-slate-950 hover:bg-sky-200">Subscriptions</a>
+              `;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // Mobile Menu
       const toggleBtn = document.getElementById('mobileMenuToggle');
       const drawer = document.getElementById('mobileDrawer');
       const openIcon = document.getElementById('menuOpenIcon');
@@ -346,12 +592,6 @@ const currentPath = Astro.url.pathname;
             closeIcon.classList.remove('hidden');
           }
         });
-      }
-    });
-
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'dealflow360_user' || e.key === 'dealflow360_token') {
-        updateAuthUI();
       }
     });
   </script>

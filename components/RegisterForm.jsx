@@ -7,7 +7,6 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('Sales Rep');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,7 +29,7 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
     setLoading(true);
 
     try {
-      const result = await register(name, email, password, role);
+      const result = await register(name, email, password);
       
       if (onSuccess) {
         onSuccess(result.user);
@@ -45,7 +44,7 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Register Internal Account
+        Create Customer Account
       </h2>
 
       <form onSubmit={handleSubmit}>
@@ -66,7 +65,7 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
 
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-medium mb-2">
-            Work Email
+            Email Address
           </label>
           <input
             type="email"
@@ -79,24 +78,13 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-medium mb-2">
-            Role
-          </label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-            disabled={loading}
-          >
-            <option value="Sales Rep">Sales Representative</option>
-            <option value="Sales Manager">Sales Manager</option>
-            <option value="Finance">Finance</option>
-            <option value="Admin">Administrator</option>
-          </select>
-          <p className="text-xs text-gray-500 mt-1">
-            Select your role for access control
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-blue-900">Enrolled Role:</span>
+            <span className="px-2.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">Customer</span>
+          </div>
+          <p className="text-xs text-blue-700 mt-1.5 leading-relaxed">
+            All self-registered accounts are enrolled as <strong>Customer</strong>. Internal company roles (Sales Rep, Sales Manager, Finance, Admin) can only be assigned by a System Administrator.
           </p>
         </div>
 
@@ -161,7 +149,7 @@ const RegisterForm = ({ onSuccess, switchToLogin }) => {
         </p>
         <div className="mt-4 p-3 bg-blue-50 rounded-md">
           <p className="text-xs text-gray-600">
-            <strong>Note:</strong> Customer portal access is separate. Customers should use the "Customer Portal Login" option on the login page.
+            <strong>Customer Portal:</strong> You will be logged in with Customer Quote Portal access. Need internal employee permissions? Contact an Administrator.
           </p>
         </div>
         <p className="text-xs text-gray-500 mt-2">

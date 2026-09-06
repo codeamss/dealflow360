@@ -3,40 +3,8 @@ import Layout from '../Layout.astro';
 import PipelineKanban from '../components/PipelineKanban.jsx';
 ---
 
-<Layout title="DealFlow360 - Pipeline">
+<Layout title="DealFlow360 - Quotations (List)" activeModule="Quotations">
   <div class="w-full">
     <PipelineKanban client:load />
   </div>
-  
-  <script>
-    // Enhanced authentication check with better error handling
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        const user = localStorage.getItem('dealflow360_user');
-        const token = localStorage.getItem('dealflow360_token');
-        
-        if (!user || !token) {
-          console.log('No authentication found, redirecting to login');
-          window.location.href = '/login';
-          return;
-        }
-        
-        // Check if customer is trying to access internal page
-        const userData = JSON.parse(user);
-        if (userData.role === 'Customer') {
-          console.log('Customer accessing internal page, redirecting to portal');
-          window.location.href = '/portal/quote/1001';
-          return;
-        }
-        
-        console.log('Pipeline access granted for:', userData.name, userData.role);
-        
-      } catch (e) {
-        console.warn('Error parsing user data, redirecting to login:', e);
-        localStorage.removeItem('dealflow360_user');
-        localStorage.removeItem('dealflow360_token');
-        window.location.href = '/login';
-      }
-    });
-  </script>
 </Layout>

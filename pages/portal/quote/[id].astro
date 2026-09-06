@@ -10,275 +10,453 @@ export function getStaticPaths() {
     { params: { id: '1003' } },
     { params: { id: '1004' } },
     { params: { id: '1005' } },
+    { params: { id: '1042' } },
+    { params: { id: '1039' } },
+    { params: { id: '1035' } },
+    { params: { id: '1030' } },
   ];
 }
-
 
 export interface Props {
   id: string;
 }
 
 const { id } = Astro.params;
-
-// Find quotation matching ID, or default to first quote
-const targetId = parseInt(id || '1001');
-const quote = quotations.find(q => q.id === targetId) || quotations[0];
-
-// Compute summary financials
-let totalGross = 0;
-let totalNet = 0;
-
-const quoteLines = (quote.lines || []).map((line, idx) => {
-  const prod = line.product || products.find(p => p.id === line.product_id) || {
-    id: line.product_id,
-    name: `Item #${line.product_id}`,
-    price: 1000,
-    category: 'Hardware',
-    is_subscription: false
-  };
-  const lineGross = prod.price * line.quantity;
-  const discountPercent = line.applied_discount || 0;
-  const lineNet = lineGross * (1 - discountPercent / 100);
-  totalGross += lineGross;
-  totalNet += lineNet;
-
-  return {
-    id: line.id || idx + 1,
-    name: prod.name,
-    category: prod.category,
-    price: prod.price,
-    quantity: line.quantity,
-    discount: discountPercent,
-    is_subscription: prod.is_subscription,
-    totalGross: lineGross,
-    totalNet: lineNet
-  };
-});
-
-if (totalGross === 0) {
-  totalGross = quote.total_price || 15000;
-  totalNet = quote.total_price ? quote.total_price * 0.9 : 13500;
-}
-const totalSavings = Math.max(0, totalGross - totalNet);
-const blendedDiscountPercent = totalGross > 0 ? ((totalSavings / totalGross) * 100).toFixed(1) : "0.0";
+const targetId = parseInt(id || '1042');
+const quote = quotations.find(q => q.id === targetId) || {
+  id: targetId,
+  customer_name: "Acme Corp",
+  status: "Under Negotiation",
+  total_price: 15400,
+  lines: [
+    { product_id: 1, quantity: 1, applied_discount: 10 },
+    { product_id: 3, quantity: 2, applied_discount: 12 }
+  ]
+};
 ---
 
 <Layout title={`Customer Portal - Quotation #${quote.id}`}>
-  <div class="space-y-6">
+  <div class="space-y-6 max-w-[1500px] mx-auto" id="portalContainer">
     
-    <!-- Portal Header Banner -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
-              Customer Executive Portal
-            </span>
-            <span class="text-xs text-slate-400">•</span>
-            <span class="text-xs text-slate-500 font-mono">Ref: DF-{quote.id}</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Quotation #{quote.id}</h1>
-          <p class="text-sm text-slate-600 mt-0.5">Prepared exclusively for <strong class="text-slate-800 font-semibold">{quote.customer_name}</strong></p>
-        </div>
+    <!-- Top Customer Portal Banner matching Excalidraw Screen 11 -->
+    <div class="bg-sky-400 border-2 border-sky-500 rounded-2xl p-4 sm:p-5 text-slate-950 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-lg">
+      <div class="flex items-center gap-3">
+        <span class="text-xl font-black tracking-tight">DealFlow360</span>
+        <span class="text-xs bg-slate-950 text-white px-2 py-0.5 rounded-full font-bold">Client Portal</span>
+      </div>
 
-        <div class="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-          <div class={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-            quote.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-            quote.status === 'Negotiation' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-            quote.status === 'Pending Approval' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-            'bg-blue-50 text-blue-700 border-blue-200'
-          }`}>
-            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-            {quote.status}
-          </div>
-          <span class="text-xs text-slate-500">Valid through: 30 days from creation</span>
-        </div>
+      <!-- Pill tabs matching Screen 11: My Quotation (Active), Messages, Profile -->
+      <div class="flex items-center gap-2">
+        <button class="px-4 py-1.5 rounded-full text-xs font-black bg-slate-900 text-white shadow-sm">
+          My Quotation
+        </button>
+        <a href="/invoices" class="px-4 py-1.5 rounded-full text-xs font-bold bg-sky-300/60 hover:bg-sky-300 text-slate-950 border border-sky-500/40 transition-colors">
+          Billing & Invoices
+        </a>
+        <a href="/subscriptions" class="px-4 py-1.5 rounded-full text-xs font-bold bg-sky-300/60 hover:bg-sky-300 text-slate-950 border border-sky-500/40 transition-colors">
+          Subscriptions
+        </a>
       </div>
     </div>
 
-    <!-- Main Portal Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Left 2 Cols: Details & Line Items -->
-      <div class="lg:col-span-2 space-y-6">
-        
-        <!-- Executive KPI Metrics -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-            <div class="text-xs font-medium text-slate-500">Total Value</div>
-            <div class="text-xl font-bold text-slate-900 mt-1">${Math.round(totalGross).toLocaleString()}</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">Standard list price</div>
-          </div>
-          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-            <div class="text-xs font-medium text-slate-500">Applied Discount</div>
-            <div class="text-xl font-bold text-emerald-600 mt-1">{blendedDiscountPercent}%</div>
-            <div class="text-[11px] text-emerald-600 mt-0.5">Approved pricing</div>
-          </div>
-          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-            <div class="text-xs font-medium text-slate-500">Total Savings</div>
-            <div class="text-xl font-bold text-indigo-600 mt-1">${Math.round(totalSavings).toLocaleString()}</div>
-            <div class="text-[11px] text-slate-400 mt-0.5">Commercial discount</div>
-          </div>
-          <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-            <div class="text-xs font-medium text-slate-500">Net Payable</div>
-            <div class="text-xl font-bold text-slate-900 mt-1">${Math.round(totalNet).toLocaleString()}</div>
-            <div class="text-[11px] text-slate-500 mt-0.5">Before local tax</div>
-          </div>
-        </div>
-
-        <!-- Line Items Table -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-            <div>
-              <h3 class="font-semibold text-slate-900 text-sm">Commercial Proposal Details</h3>
-              <p class="text-xs text-slate-500">Line items and discount breakdown</p>
-            </div>
-            <span class="text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
-              {quoteLines.length} Item{quoteLines.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
-              <thead class="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th class="px-6 py-3 text-left">Item & Category</th>
-                  <th class="px-4 py-3 text-center">Type</th>
-                  <th class="px-4 py-3 text-right">Unit Price</th>
-                  <th class="px-4 py-3 text-center">Qty</th>
-                  <th class="px-4 py-3 text-center">Discount</th>
-                  <th class="px-6 py-3 text-right">Net Amount</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                {quoteLines.map((item) => (
-                  <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-6 py-4">
-                      <div class="font-medium text-slate-900">{item.name}</div>
-                      <div class="text-xs text-slate-500 mt-0.5">{item.category}</div>
-                    </td>
-                    <td class="px-4 py-4 text-center">
-                      <span class={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
-                        item.is_subscription 
-                          ? 'bg-purple-50 text-purple-700 border-purple-200' 
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}>
-                        {item.is_subscription ? 'Subscription' : 'One-time'}
-                      </span>
-                    </td>
-                    <td class="px-4 py-4 text-right text-slate-600 font-mono text-xs">
-                      ${item.price.toLocaleString()}
-                    </td>
-                    <td class="px-4 py-4 text-center font-medium text-slate-800">
-                      {item.quantity}
-                    </td>
-                    <td class="px-4 py-4 text-center">
-                      {item.discount > 0 ? (
-                        <span class="inline-block px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded border border-emerald-100">
-                          {item.discount}% off
-                        </span>
-                      ) : (
-                        <span class="text-xs text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td class="px-6 py-4 text-right font-semibold text-slate-900 font-mono">
-                      ${Math.round(item.totalNet).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot class="bg-slate-50 font-medium">
-                <tr>
-                  <td colspan="5" class="px-6 py-3 text-right text-xs uppercase tracking-wider text-slate-500">Gross Total:</td>
-                  <td class="px-6 py-3 text-right text-slate-700 font-mono">${Math.round(totalGross).toLocaleString()}</td>
-                </tr>
-                <tr>
-                  <td colspan="5" class="px-6 py-2 text-right text-xs uppercase tracking-wider text-emerald-600">Total Discount:</td>
-                  <td class="px-6 py-2 text-right text-emerald-600 font-mono">-${Math.round(totalSavings).toLocaleString()}</td>
-                </tr>
-                <tr class="border-t border-slate-200 text-base font-bold text-slate-900">
-                  <td colspan="5" class="px-6 py-4 text-right">Net Proposal Amount:</td>
-                  <td class="px-6 py-4 text-right text-indigo-700 font-mono">${Math.round(totalNet).toLocaleString()}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-
-        <!-- Billing & Delivery Schedule -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h3 class="text-base font-semibold text-slate-900 mb-3">Fulfillment & Payment Schedule</h3>
-          <div class="space-y-3 text-sm">
-            <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">1</div>
-                <div>
-                  <div class="font-medium text-slate-900">Initial Hardware Deployment</div>
-                  <div class="text-xs text-slate-500">Physical systems dispatched via nearest regional warehouse</div>
-                </div>
-              </div>
-              <span class="text-xs font-semibold text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200">Net 30</span>
-            </div>
-
-            <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-xs">2</div>
-                <div>
-                  <div class="font-medium text-slate-900">Recurring Cloud / Support Services</div>
-                  <div class="text-xs text-slate-500">Billed monthly commencing upon system handover</div>
-                </div>
-              </div>
-              <span class="text-xs font-semibold text-slate-700 bg-white px-2.5 py-1 rounded-md border border-slate-200">Monthly</span>
-            </div>
-          </div>
-        </div>
+    <!-- Screen 11 Title and Subtitle -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Customer Portal Negotiation Screen</h1>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+          Customer reviews and negotiates the quote directly, with automatic billing synchronisation upon confirmation
+        </p>
       </div>
 
-      <!-- Right 1 Col: Negotiation Box & Rep Contact -->
-      <div class="space-y-6">
-        
-        <!-- Live Negotiation Box -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <NegotiationBox client:load quotationId={quote.id} isCustomerView={true} />
-        </div>
+      <!-- Status Pill: Dynamic (Under Negotiation or Confirmed & Billed) -->
+      <div id="portalStatusPillContainer">
+        <span id="portalStatusBadge" class="px-4 py-1.5 rounded-full text-xs font-black bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-sm flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+          <span>Status: Under Negotiation</span>
+        </span>
+      </div>
+    </div>
 
-        <!-- Sales Representative Card -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h3 class="text-sm font-semibold text-slate-900 mb-4">Dedicated Account Representative</h3>
-          <div class="flex items-center gap-3.5 mb-4">
-            <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold text-base shadow-sm">
-              AJ
-            </div>
-            <div>
-              <div class="font-semibold text-slate-900 text-sm">Alex Johnson</div>
-              <div class="text-xs text-slate-500">Senior Enterprise Account Executive</div>
-            </div>
+    <!-- Confirmed Billing & Subscription Summary Banner (Revealed when Confirmed) -->
+    <div id="confirmedBillingBanner" class="hidden bg-slate-900/95 border-2 border-emerald-500/80 rounded-2xl p-6 sm:p-7 shadow-2xl space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight">Quotation Confirmed & Sent to Billing</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              Billing Ledger Synchronized
+            </span>
           </div>
-
-          <div class="space-y-2.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              <span>alex.johnson@dealflow360.com</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-              <span>+1 (555) 234-8901 (Ext. 402)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Portal Security Notice -->
-        <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 text-xs text-slate-600">
-          <div class="flex items-center gap-2 font-semibold text-slate-800 mb-1">
-            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-            <span>Secure B2B Portal</span>
-          </div>
-          <p class="text-slate-500 leading-relaxed">
-            All submitted counter-offers and accepted quotes are encrypted and directly routed to the sales approval committee.
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Official agreement sealed. The commercial invoice has been issued and recurring subscription contract activated.
           </p>
         </div>
 
+        <div class="flex flex-wrap items-center gap-2">
+          <a
+            href="/invoices"
+            class="px-4 py-2 bg-sky-400 hover:bg-sky-300 active:scale-95 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>View Invoices Ledger →</span>
+          </a>
+          <a
+            href="/subscriptions"
+            class="px-4 py-2 bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>View Subscriptions →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3 Detail Cards: Invoice, Subscription, and Order Fulfillment -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- 1. Invoice Card -->
+        <div class="bg-slate-950/80 border border-slate-700/80 rounded-xl p-5 space-y-3 shadow-inner">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Generated Invoice</span>
+              <h3 class="font-mono font-black text-sky-400 text-lg" id="confirmedInvNum">INV-2026-{quote.id}</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              Payment Due
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div class="text-2xl sm:text-3xl font-black text-white font-mono" id="confirmedInvAmount">${quote.total_price.toLocaleString()}</div>
+            <div class="text-xs text-slate-400">Due Date: Net 30 Days • Reconciled on Wire</div>
+          </div>
+          <div class="pt-1 flex items-center gap-2">
+            <a
+              href="/invoices"
+              class="flex-1 text-center py-2 px-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-xs transition-colors border border-sky-500/40"
+            >
+              Open Invoice Ledger
+            </a>
+          </div>
+        </div>
+
+        <!-- 2. Subscription Card -->
+        <div class="bg-slate-950/80 border border-slate-700/80 rounded-xl p-5 space-y-3 shadow-inner">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Recurring Contract</span>
+              <h3 class="font-mono font-black text-purple-400 text-lg" id="confirmedSubNum">SUB-2026-{quote.id}</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              Active
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono" id="confirmedSubMRR">$1,400<span class="text-xs text-slate-400 font-normal">/mo</span></div>
+            <div class="text-xs text-slate-400">Enterprise Hybrid SaaS & Cloud Services</div>
+          </div>
+          <div class="pt-1">
+            <a
+              href="/subscriptions"
+              class="block text-center py-2 px-3 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-bold text-xs transition-colors border border-purple-500/40"
+            >
+              Open Subscriptions Ledger
+            </a>
+          </div>
+        </div>
+
+        <!-- 3. Fulfillment Order Card -->
+        <div class="bg-slate-950/80 border border-slate-700/80 rounded-xl p-5 space-y-3 shadow-inner">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Warehouse Order</span>
+              <h3 class="font-mono font-black text-amber-400 text-lg" id="confirmedOrderNum">ORD-2026-{quote.id}</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+              Dispatched
+            </span>
+          </div>
+          <div class="space-y-1">
+            <div class="text-sm font-bold text-white">Main Central Depot</div>
+            <div class="text-xs text-slate-400">Warehouse quota reserved • Routing to dispatch</div>
+          </div>
+          <div class="pt-1">
+            <span class="block text-center py-2 px-3 rounded-lg bg-slate-800 text-slate-400 font-medium text-xs border border-slate-700">
+              Fulfillment Routing Active
+            </span>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Line Item Comments & Feedback Table matching Screen 11 -->
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4" id="negotiationCard">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Line Item Terms & Inquiries</h3>
+
+      <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+        <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+          <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-5 py-3 text-left w-1/3">Line</th>
+              <th class="px-5 py-3 text-left">Customer Comment</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-300">
+            <tr class="hover:bg-slate-800/40">
+              <td class="px-5 py-3.5 font-bold text-white">Extended Warranty</td>
+              <td class="px-5 py-3.5 text-slate-300 italic">"Can this be 15% off instead of 10%?"</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="px-5 py-3.5 font-bold text-white">Onsite Setup</td>
+              <td class="px-5 py-3.5 text-slate-300 italic">"Can we push this to next month?"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Two Side-by-Side Inputs: Counter Discount % and Requested Delivery Date -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2" id="negotiationInputsSection">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            Counter Discount %
+          </label>
+          <div class="relative">
+            <input 
+              type="number" 
+              id="portalCounterDiscount" 
+              placeholder="e.g. 15" 
+              min="0" 
+              max="50" 
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono font-bold focus:outline-none focus:ring-2 focus:ring-sky-400"
+            />
+            <span class="absolute right-3.5 top-2.5 text-xs text-slate-400 font-bold">%</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            Requested Delivery Date
+          </label>
+          <input 
+            type="date" 
+            id="portalDeliveryDate" 
+            class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-400"
+          />
+        </div>
+      </div>
+
+      <!-- Action Buttons matching Screen 11 -->
+      <div class="flex flex-wrap items-center gap-4 pt-2" id="portalActionButtons">
+        <button 
+          type="button" 
+          onclick="submitCustomerRequest()" 
+          id="submitRequestBtn"
+          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs rounded-xl border border-slate-600 transition-all shadow-md cursor-pointer"
+        >
+          Submit Request
+        </button>
+        <button 
+          type="button" 
+          onclick="confirmCustomerQuotation()" 
+          id="confirmQuoteBtn"
+          class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-2"
+        >
+          <span>Confirm Quotation & Send to Billing</span>
+        </button>
+      </div>
+
+      <!-- Yellow Callout Box matching Excalidraw Screen 11 -->
+      <div class="excalidraw-callout mt-2">
+        If final terms exceed thresholds, the quote automatically re-enters approval (Screen 6). Confirming instantly issues the commercial invoice and subscription schedule.
+      </div>
+    </div>
+
+    <!-- Live Direct Negotiation Channel component -->
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl">
+      <NegotiationBox client:load quotationId={quote.id} isCustomerView={true} />
+    </div>
+
   </div>
+
+  <script src="../../../billingService.js"></script>
+
+  <script is:inline define:vars={{ currentQuoteId: targetId, quoteData: quote }}>
+    function updateConfirmedUI(invoice, subscription) {
+      // 1. Update top status badge
+      const statusBadge = document.getElementById('portalStatusBadge');
+      if (statusBadge) {
+        statusBadge.className = 'px-4 py-1.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-2';
+        statusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Status: Confirmed & Billed</span>';
+      }
+
+      // 2. Show confirmed banner
+      const banner = document.getElementById('confirmedBillingBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
+
+      // 3. Update banner details
+      const invNumEl = document.getElementById('confirmedInvNum');
+      if (invNumEl && invoice) invNumEl.textContent = invoice.invoice_number;
+
+      const invAmtEl = document.getElementById('confirmedInvAmount');
+      if (invAmtEl && invoice) invAmtEl.textContent = '$' + Number(invoice.amount).toLocaleString();
+
+      const subNumEl = document.getElementById('confirmedSubNum');
+      if (subNumEl && subscription) subNumEl.textContent = subscription.contract_number;
+
+      const subMrrEl = document.getElementById('confirmedSubMRR');
+      if (subMrrEl && subscription) subMrrEl.innerHTML = '$' + Number(subscription.mrr_value).toLocaleString() + '<span class="text-xs text-slate-400 font-normal">/mo</span>';
+
+      const orderNumEl = document.getElementById('confirmedOrderNum');
+      if (orderNumEl && invoice) orderNumEl.textContent = invoice.order_number || `ORD-2026-${currentQuoteId}`;
+
+      // 4. Update action buttons
+      const confirmBtn = document.getElementById('confirmQuoteBtn');
+      if (confirmBtn) {
+        confirmBtn.className = 'px-6 py-2.5 bg-emerald-900/60 text-emerald-300 font-black text-xs rounded-xl border border-emerald-500/50 cursor-default opacity-80';
+        confirmBtn.innerHTML = '<span>✓ Quotation Confirmed & Invoiced</span>';
+        confirmBtn.disabled = true;
+      }
+      const submitBtn = document.getElementById('submitRequestBtn');
+      if (submitBtn) {
+        submitBtn.style.display = 'none';
+      }
+      const inputsSec = document.getElementById('negotiationInputsSection');
+      if (inputsSec) {
+        inputsSec.style.opacity = '0.5';
+        inputsSec.style.pointerEvents = 'none';
+      }
+    }
+
+    function checkConfirmationState() {
+      // Check quotes
+      let isConfirmed = false;
+      let existingInvoice = null;
+      let existingSub = null;
+
+      try {
+        const quotes = JSON.parse(localStorage.getItem('dealflow360_custom_quotes') || '[]');
+        const foundQ = quotes.find(q => q.id === currentQuoteId);
+        if (foundQ && foundQ.status === 'Confirmed') {
+          isConfirmed = true;
+        }
+
+        const invoices = JSON.parse(localStorage.getItem('dealflow360_custom_invoices') || '[]');
+        existingInvoice = invoices.find(i => i.quotation_id === currentQuoteId || i.invoice_number === `INV-2026-${currentQuoteId}`);
+        if (existingInvoice) isConfirmed = true;
+
+        const subs = JSON.parse(localStorage.getItem('dealflow360_custom_subscriptions') || '[]');
+        existingSub = subs.find(s => s.quotation_id === currentQuoteId || s.contract_number === `SUB-2026-${currentQuoteId}`);
+      } catch (e) {}
+
+      if (isConfirmed) {
+        const fallbackInv = existingInvoice || {
+          invoice_number: `INV-2026-${currentQuoteId}`,
+          amount: quoteData.total_price || 18700,
+          order_number: `ORD-2026-${currentQuoteId}`
+        };
+        const fallbackSub = existingSub || {
+          contract_number: `SUB-2026-${currentQuoteId}`,
+          mrr_value: Math.max(350, Math.round((quoteData.total_price || 18700) * 0.12))
+        };
+        updateConfirmedUI(fallbackInv, fallbackSub);
+      }
+    }
+
+    function submitCustomerRequest() {
+      const discount = parseFloat(document.getElementById('portalCounterDiscount')?.value || '0');
+      const date = document.getElementById('portalDeliveryDate')?.value;
+
+      if (discount > 12) {
+        if (window.showToast) {
+          window.showToast(`Request submitted! Because counter-discount of ${discount}% exceeds the 12% ceiling, quote automatically re-enters approval flow.`, 'info');
+        }
+      } else {
+        if (window.showToast) {
+          window.showToast('Negotiation request transmitted to account team.', 'success');
+        }
+      }
+    }
+
+    window.confirmCustomerQuotation = function() {
+      const discount = parseFloat(document.getElementById('portalCounterDiscount')?.value || '0');
+      
+      let res;
+      if (window.DealFlowBilling && window.DealFlowBilling.confirmQuoteAndSendToBilling) {
+        res = window.DealFlowBilling.confirmQuoteAndSendToBilling(currentQuoteId, {
+          discount: discount,
+          customer_name: quoteData.customer_name
+        });
+      } else {
+        // Direct local storage generation fallback
+        const finalPrice = discount > 0 ? Math.round((quoteData.total_price || 18700) * (1 - discount / 100)) : (quoteData.total_price || 18700);
+        const inv = {
+          id: 9000 + currentQuoteId,
+          invoice_number: `INV-2026-${currentQuoteId}`,
+          order_number: `ORD-2026-${currentQuoteId}`,
+          customer: quoteData.customer_name || "Acme Corporation",
+          amount: finalPrice,
+          status: "Payment Due",
+          issue_date: new Date().toISOString().split('T')[0],
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          reconciled: false,
+          quotation_id: currentQuoteId
+        };
+        const sub = {
+          id: 7000 + currentQuoteId,
+          contract_number: `SUB-2026-${currentQuoteId}`,
+          customer: quoteData.customer_name || "Acme Corporation",
+          plan_name: "Enterprise Hybrid SaaS & Infrastructure Support",
+          cadence: "Monthly",
+          mrr_value: Math.max(350, Math.round(finalPrice * 0.12)),
+          arr_value: Math.max(350, Math.round(finalPrice * 0.12)) * 12,
+          next_bill_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: "Active",
+          quotation_id: currentQuoteId
+        };
+
+        try {
+          let customInvoices = JSON.parse(localStorage.getItem('dealflow360_custom_invoices') || '[]');
+          customInvoices = customInvoices.filter(i => i.quotation_id !== currentQuoteId);
+          customInvoices.unshift(inv);
+          localStorage.setItem('dealflow360_custom_invoices', JSON.stringify(customInvoices));
+
+          let customSubs = JSON.parse(localStorage.getItem('dealflow360_custom_subscriptions') || '[]');
+          customSubs = customSubs.filter(s => s.quotation_id !== currentQuoteId);
+          customSubs.unshift(sub);
+          localStorage.setItem('dealflow360_custom_subscriptions', JSON.stringify(customSubs));
+
+          let customQuotes = JSON.parse(localStorage.getItem('dealflow360_custom_quotes') || '[]');
+          const qIdx = customQuotes.findIndex(q => q.id === currentQuoteId);
+          const cQuote = { ...quoteData, status: "Confirmed", order_id: inv.order_number, invoice_id: inv.invoice_number };
+          if (qIdx >= 0) customQuotes[qIdx] = cQuote;
+          else customQuotes.unshift(cQuote);
+          localStorage.setItem('dealflow360_custom_quotes', JSON.stringify(customQuotes));
+
+          window.dispatchEvent(new Event('storage'));
+        } catch(e) {}
+
+        res = { invoice: inv, subscription: sub };
+      }
+
+      if (window.showToast) {
+        window.showToast(`Quotation Confirmed! Invoice #INV-2026-${currentQuoteId} and Subscription #SUB-2026-${currentQuoteId} sent to billing operations.`, 'success');
+      }
+
+      if (res && res.invoice) {
+        updateConfirmedUI(res.invoice, res.subscription);
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkConfirmationState();
+    });
+
+    window.addEventListener('storage', () => {
+      checkConfirmationState();
+    });
+
+    window.addEventListener('dealflow360_billing_updated', (e) => {
+      if (e.detail && e.detail.quote && e.detail.quote.id === currentQuoteId) {
+        updateConfirmedUI(e.detail.invoice, e.detail.subscription);
+      }
+    });
+  </script>
 </Layout>

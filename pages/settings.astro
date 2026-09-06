@@ -1,464 +1,670 @@
 ---
 import Layout from '../Layout.astro';
+import { products, warehouses } from '../mockData.js';
 ---
 
-<Layout title="DealFlow360 - Platform Settings">
-  <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+<Layout title="DealFlow360 - Discount Tiers & Governance Setup" activeModule="Governance">
+  <div class="space-y-8 max-w-[1500px] mx-auto">
+    
+    <!-- ========================================================================= -->
+    <!-- SCREEN 18: Discount tiers and approval chains (Exact Excalidraw Layout)   -->
+    <!-- ========================================================================= -->
+    <div class="space-y-6 bg-slate-900/90 border-2 border-slate-700/90 rounded-2xl p-6 sm:p-8 shadow-2xl">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Platform Governance & Settings</h1>
-        <p class="text-slate-600 text-sm">Configure commercial rules, user permissions, and enterprise integrations</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Discount tiers and approval chains</h1>
+        <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+          Algorithmic ceilings, governance limits, and blended risk escalation thresholds
+        </p>
       </div>
-      <div class="flex items-center gap-3">
-        <button id="save-settings-btn" type="button" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-all flex items-center gap-2 active:scale-[0.98]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Save All Changes
+
+      <!-- Two Side-by-Side Tables: Tier Discount Ceilings & Category Discount Ceilings -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Table 1: Tier Discount Ceilings -->
+        <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+          <div class="px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Tier Discount Ceilings</span>
+          </div>
+          <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+            <thead class="bg-slate-900/80 text-slate-400 font-bold uppercase text-[11px]">
+              <tr>
+                <th class="px-5 py-2.5 text-left">Tier</th>
+                <th class="px-5 py-2.5 text-right">Max Discount</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-200">
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-5 py-3 font-bold text-amber-400">Bronze</td>
+                <td class="px-5 py-3 text-right font-mono font-bold">5 percent</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-5 py-3 font-bold text-slate-300">Silver</td>
+                <td class="px-5 py-3 text-right font-mono font-bold">10 percent</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-5 py-3 font-bold text-sky-400">Gold</td>
+                <td class="px-5 py-3 text-right font-mono font-bold">15 Percent</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table 2: Category Discount Ceilings -->
+        <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+          <div class="px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Category Discount Ceilings</span>
+          </div>
+          <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+            <thead class="bg-slate-900/80 text-slate-400 font-bold uppercase text-[11px]">
+              <tr>
+                <th class="px-5 py-2.5 text-left">Category</th>
+                <th class="px-5 py-2.5 text-right">Max Discount</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-200">
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-5 py-3 font-bold text-blue-400">Hardware</td>
+                <td class="px-5 py-3 text-right font-mono font-bold">15 percent</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-5 py-3 font-bold text-purple-400">Services</td>
+                <td class="px-5 py-3 text-right font-mono font-bold">10 percent</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Table 3: Approval Chain Rules -->
+      <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+        <div class="px-4 py-2.5 bg-slate-800/80 border-b border-slate-700">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Approval Chain Rules</span>
+        </div>
+        <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+          <thead class="bg-slate-900/80 text-slate-400 font-bold uppercase text-[11px]">
+            <tr>
+              <th class="px-5 py-2.5 text-left">Discount Range / Condition</th>
+              <th class="px-5 py-2.5 text-left">Required Approval Level</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-200">
+            <tr class="hover:bg-slate-800/40">
+              <td class="px-5 py-3 font-medium">Within tier/Category limit</td>
+              <td class="px-5 py-3 font-bold text-emerald-400">No approval needed</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="px-5 py-3 font-medium">Over Limit, blended risk medium</td>
+              <td class="px-5 py-3 font-bold text-amber-400">Sales manager</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="px-5 py-3 font-medium">Over limit, blended high risk</td>
+              <td class="px-5 py-3 font-bold text-rose-400">Sales manager then finance</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Save Configuration Button (Sky Blue) -->
+      <div>
+        <button
+          type="button"
+          onclick="saveConfig()"
+          class="px-6 py-2.5 bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold rounded-xl text-xs shadow-md transition-all active:scale-95 flex items-center gap-2"
+        >
+          <span>Save configuration</span>
         </button>
       </div>
+
+      <!-- Yellow Governance Callout Note matching Excalidraw Screen 18 -->
+      <div class="excalidraw-callout">
+        When a quote mixes categories with different ceilings, the system must compute a blended risk score and route to the highest required level. All approvals, rejections, and edits must be logged with user, timestamp, and reason.
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Left sidebar tab navigation */}
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <nav class="space-y-0.5 p-2" id="settings-nav">
-            <button type="button" data-tab="general" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 bg-indigo-50 text-indigo-700">
-              <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              General Settings
-            </button>
 
-            <button type="button" data-tab="users" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              User Management
-            </button>
-
-            <button type="button" data-tab="approvals" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Approval Policy Rules
-            </button>
-
-            <button type="button" data-tab="notifications" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              Notification Hub
-            </button>
-
-            <button type="button" data-tab="integrations" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              ERP & CRM Connectors
-            </button>
-
-            <button type="button" data-tab="billing" class="tab-btn w-full text-left px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900">
-              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-              Billing & Subscriptions
-            </button>
-          </nav>
-        </div>
-
-        {/* System Status Mini Box */}
-        <div class="mt-4 p-4 bg-white rounded-xl border border-slate-200 shadow-sm text-xs space-y-2">
-          <div class="flex items-center justify-between font-medium">
-            <span class="text-slate-500">FastAPI Backend</span>
-            <span class="text-emerald-700 font-bold flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Online
-            </span>
-          </div>
-          <div class="flex items-center justify-between font-medium">
-            <span class="text-slate-500">Database</span>
-            <span class="text-slate-700 font-bold">dealflow360.db</span>
-          </div>
-          <div class="flex items-center justify-between font-medium">
-            <span class="text-slate-500">License Plan</span>
-            <span class="text-indigo-600 font-bold">Enterprise 360</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Settings Content Panels */}
-      <div class="lg:col-span-3 space-y-6">
-        {/* TAB 1: General Settings */}
-        <div id="tab-content-general" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+    <!-- ========================================================================= -->
+    <!-- Catalog Price Lists & Regional Warehouses Tabs                            -->
+    <!-- ========================================================================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Catalog Overview with 8-per-page Pagination -->
+      <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h2 class="text-base font-bold text-slate-900">Enterprise Commercial Profile</h2>
-            <p class="text-xs text-slate-500">Primary legal entity identity and regional currency defaults</p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Company Legal Name</label>
-              <input 
-                id="setting-company"
-                type="text" 
-                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                value="DealFlow Enterprise Inc."
-              />
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Commercial Currency</label>
-              <select id="setting-currency" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                <option value="USD">USD - US Dollar ($)</option>
-                <option value="EUR">EUR - Euro (€)</option>
-                <option value="GBP">GBP - British Pound (£)</option>
-                <option value="CAD">CAD - Canadian Dollar ($)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Operational Time Zone</label>
-              <select id="setting-timezone" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                <option value="EST">America/New_York (EST / UTC-5)</option>
-                <option value="CST">America/Chicago (CST / UTC-6)</option>
-                <option value="PST">America/Los_Angeles (PST / UTC-8)</option>
-                <option value="UTC">Europe/London (GMT / UTC+0)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Quote Validity Duration</label>
-              <select id="setting-validity" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                <option value="15">15 Calendar Days</option>
-                <option value="30" selected>30 Calendar Days (Standard)</option>
-                <option value="60">60 Calendar Days (Enterprise)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="pt-4 border-t border-slate-100 space-y-3">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" id="setting-tax-auto" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" checked />
-              <span class="text-sm font-medium text-slate-700">Calculate regional sales tax automatically on quote creation (8% baseline)</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" id="setting-auto-draft" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4" checked />
-              <span class="text-sm font-medium text-slate-700">Auto-save in-progress draft quotes to local browser storage every 60 seconds</span>
-            </label>
-          </div>
-        </div>
-
-        {/* TAB 2: User Management */}
-        <div id="tab-content-users" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-          <div class="flex justify-between items-center">
-            <div>
-              <h2 class="text-base font-bold text-slate-900">Commercial Team & Access Hierarchy</h2>
-              <p class="text-xs text-slate-500">Configure role privileges across Sales Rep, Sales Manager, and Director</p>
-            </div>
-            <button type="button" onclick="alert('Invitation link generated and copied to clipboard!')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold border border-indigo-200 transition-colors">
-              + Invite Colleague
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-xs">
-              <thead>
-                <tr class="bg-slate-50">
-                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">User</th>
-                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Email</th>
-                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Role</th>
-                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Approval Tier</th>
-                  <th class="px-4 py-2.5 text-left font-bold text-slate-500 uppercase">Status</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 font-medium">
-                <tr>
-                  <td class="px-4 py-3 text-slate-900 font-bold">Alex Johnson</td>
-                  <td class="px-4 py-3 text-slate-600">alex@company.com</td>
-                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-semibold">Sales Rep</span></td>
-                  <td class="px-4 py-3 text-slate-600">Tier 0 (&le;10% discount)</td>
-                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
-                </tr>
-                <tr>
-                  <td class="px-4 py-3 text-slate-900 font-bold">Sarah Chen</td>
-                  <td class="px-4 py-3 text-slate-600">sarah@company.com</td>
-                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-semibold">Sales Manager</span></td>
-                  <td class="px-4 py-3 text-slate-600">Tier 1 (&le;20% discount)</td>
-                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
-                </tr>
-                <tr>
-                  <td class="px-4 py-3 text-slate-900 font-bold">Marcus Vance</td>
-                  <td class="px-4 py-3 text-slate-600">marcus@company.com</td>
-                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 font-semibold">Sales Director</span></td>
-                  <td class="px-4 py-3 text-slate-600">Tier 2 (&le;40% discount)</td>
-                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
-                </tr>
-                <tr>
-                  <td class="px-4 py-3 text-slate-900 font-bold">Elena Rostova</td>
-                  <td class="px-4 py-3 text-slate-600">elena@company.com</td>
-                  <td class="px-4 py-3"><span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">VP Finance</span></td>
-                  <td class="px-4 py-3 text-slate-600">Tier 3 (Executive Sign-off)</td>
-                  <td class="px-4 py-3 text-emerald-600 font-semibold">Active</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* TAB 3: Approval Policy Rules */}
-        <div id="tab-content-approvals" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-slate-900">Governance & Escalation Triggers</h2>
-            <p class="text-xs text-slate-500">Configure thresholds that gate quotation progression before dispatch</p>
-          </div>
-
-          <div class="space-y-4">
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-              <div>
-                <span class="font-bold text-sm text-slate-900">Tier 1: Manager Escalation Threshold</span>
-                <p class="text-xs text-slate-500">Discounts beyond this value require explicit Sales Manager review</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="number" value="12" class="w-16 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
-                <span class="text-xs font-bold text-slate-500">%</span>
-              </div>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-              <div>
-                <span class="font-bold text-sm text-slate-900">Tier 2: VP & Finance Risk Trigger</span>
-                <p class="text-xs text-slate-500">Quotes exceeding this algorithmic risk score require Finance authorization</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <input type="number" value="30" class="w-16 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
-                <span class="text-xs font-bold text-slate-500">% Risk</span>
-              </div>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
-              <div>
-                <span class="font-bold text-sm text-slate-900">High-Value Commercial Ceiling</span>
-                <p class="text-xs text-slate-500">Total quote value triggering automated dual-executive review</p>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-500">$</span>
-                <input type="number" value="50000" class="w-24 px-2.5 py-1.5 text-sm font-bold border border-slate-300 rounded-lg text-center" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* TAB 4: Notifications */}
-        <div id="tab-content-notifications" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-slate-900">Alert Dispatch Matrix</h2>
-            <p class="text-xs text-slate-500">Configure email and real-time dashboard notifications</p>
-          </div>
-
-          <div class="space-y-3 text-sm">
-            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-              <div>
-                <div class="font-semibold text-slate-900">Customer Counter-Offer Submitted</div>
-                <div class="text-xs text-slate-500">Notify account executive immediately when customer posts a revised discount</div>
-              </div>
-              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
-            </label>
-
-            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-              <div>
-                <div class="font-semibold text-slate-900">Executive Approval Request</div>
-                <div class="text-xs text-slate-500">Email managers when a quotation exceeds policy guidelines</div>
-              </div>
-              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
-            </label>
-
-            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-              <div>
-                <div class="font-semibold text-slate-900">Customer Portal View Tracking</div>
-                <div class="text-xs text-slate-500">Instant notification when a customer accesses their shared proposal link</div>
-              </div>
-              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
-            </label>
-
-            <label class="flex items-center justify-between p-3.5 bg-slate-50 rounded-lg border border-slate-200">
-              <div>
-                <div class="font-semibold text-slate-900">Inventory Allocation Shortage Warnings</div>
-                <div class="text-xs text-slate-500">Alert supply chain coordinator when order lines exceed network stock</div>
-              </div>
-              <input type="checkbox" class="rounded text-indigo-600 w-4 h-4" checked />
-            </label>
-          </div>
-        </div>
-
-        {/* TAB 5: Integrations */}
-        <div id="tab-content-integrations" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-slate-900">Enterprise Sync Connectors</h2>
-            <p class="text-xs text-slate-500">Connect quotation data directly into CRM, ERP, and accounting ledgers</p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
-              <div>
-                <span class="font-bold text-sm text-slate-900">Salesforce CRM</span>
-                <p class="text-xs text-slate-500 mt-0.5">Bi-directional opportunity pipeline sync</p>
-                <span class="inline-block mt-2 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Connected</span>
-              </div>
-              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Configure</button>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
-              <div>
-                <span class="font-bold text-sm text-slate-900">SAP S/4HANA ERP</span>
-                <p class="text-xs text-slate-500 mt-0.5">Automated purchase order generation</p>
-                <span class="inline-block mt-2 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Connected</span>
-              </div>
-              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Configure</button>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
-              <div>
-                <span class="font-bold text-sm text-slate-900">Slack Notifications</span>
-                <p class="text-xs text-slate-500 mt-0.5">Channel alerts for closed deals</p>
-                <span class="inline-block mt-2 text-[11px] font-semibold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded">#sales-dealflow</span>
-              </div>
-              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">Manage</button>
-            </div>
-
-            <div class="p-4 rounded-xl border border-slate-200 flex items-start justify-between bg-slate-50/50">
-              <div>
-                <span class="font-bold text-sm text-slate-900">REST Webhooks</span>
-                <p class="text-xs text-slate-500 mt-0.5">Event payloads for custom pipelines</p>
-                <span class="inline-block mt-2 text-[11px] font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded">2 Active Endpoints</span>
-              </div>
-              <button type="button" class="text-xs font-semibold text-indigo-600 hover:underline">View Keys</button>
-            </div>
-          </div>
-        </div>
-
-        {/* TAB 6: Billing */}
-        <div id="tab-content-billing" class="tab-content hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-          <div>
-            <h2 class="text-base font-bold text-slate-900">Enterprise Subscription & Quotas</h2>
-            <p class="text-xs text-slate-500">Manage seat allocation, add-on features, and corporate invoicing</p>
-          </div>
-
-          <div class="p-5 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-xl text-white">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">Active Commercial Tier</span>
-                <h3 class="text-2xl font-black mt-1">DealFlow360 Enterprise Plan</h3>
-                <p class="text-xs text-slate-300 mt-1">Unlimited quotation volume &bull; Custom approval governance &bull; Dedicated SLA</p>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                Active &bull; Annual Billing
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-white">Commercial Catalog Items</h2>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                8 items per page
               </span>
             </div>
+            <p class="text-xs text-slate-400 mt-0.5">Products and recurring subscription flags ({products.length} total items)</p>
+          </div>
 
-            <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10 text-center">
-              <div>
-                <span class="text-xs text-slate-400">Assigned Seats</span>
-                <p class="text-lg font-bold">24 / 50</p>
-              </div>
-              <div>
-                <span class="text-xs text-slate-400">Quotes Built (Mo.)</span>
-                <p class="text-lg font-bold">142</p>
-              </div>
-              <div>
-                <span class="text-xs text-slate-400">Renewal Date</span>
-                <p class="text-lg font-bold">Sep 1, 2027</p>
-              </div>
-            </div>
+          <!-- Quick Search Filter -->
+          <div class="w-full sm:w-56">
+            <input 
+              type="text" 
+              id="catalogSearchInput" 
+              oninput="filterCatalog()" 
+              placeholder="Search catalog products..." 
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-400"
+            />
+          </div>
+        </div>
+
+        <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+          <table class="min-w-full divide-y divide-slate-700 text-xs">
+            <thead class="bg-slate-800/80 text-slate-300 font-bold uppercase text-[10px]">
+              <tr>
+                <th class="px-4 py-2.5 text-left">Product</th>
+                <th class="px-3 py-2.5 text-left">Category</th>
+                <th class="px-3 py-2.5 text-right">Base Price</th>
+                <th class="px-3 py-2.5 text-center">Type</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Populated dynamically via JS (8 items per page) -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Catalog Pagination Controls Bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-2.5 rounded-xl bg-slate-950/50 border border-slate-800 text-xs text-slate-400 gap-3">
+          <div id="catalogPaginationInfo" class="text-slate-400 font-medium text-[11px] sm:text-xs">
+            Showing 1–8 of {products.length} products
+          </div>
+
+          <div class="flex items-center gap-1.5" id="catalogPaginationControls">
+            <!-- Dynamically populated page buttons -->
           </div>
         </div>
       </div>
+
+      <!-- Regional Warehouses -->
+      <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-white">Registered Distribution Warehouses</h2>
+          <p class="text-xs text-slate-400">Connected to multi-warehouse fulfillment splitting router</p>
+        </div>
+
+        <div class="space-y-3">
+          {warehouses.map(wh => (
+            <div key={wh.id} class="p-4 rounded-xl border border-slate-700 bg-slate-950/40 flex justify-between items-center">
+              <div>
+                <h4 class="font-bold text-white text-sm">{wh.name}</h4>
+                <p class="text-xs text-slate-400">{wh.location}</p>
+              </div>
+              <div class="text-right">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  Online
+                </span>
+                <p class="text-[11px] font-mono text-slate-400 mt-1">
+                  {wh.inventory.reduce((sum, i) => sum + i.quantity, 0)} units total
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
+
+    <!-- ========================================================================= -->
+    <!-- Admin Role Governance & User Permissions (Admin-Only Role Assignment)      -->
+    <!-- ========================================================================= -->
+    <div class="space-y-6 bg-slate-900/90 border-2 border-slate-700/90 rounded-2xl p-6 sm:p-8 shadow-2xl" id="roleGovernanceSection">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <div class="flex items-center gap-3">
+            <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Admin Role Governance</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">
+              Admin Exclusive
+            </span>
+          </div>
+          <p class="text-slate-400 text-xs sm:text-sm mt-1">
+            Assign internal permissions (Sales Rep, Sales Manager, Finance, Admin) to registered users. Self-registered users default to Customer.
+          </p>
+        </div>
+
+        <!-- Admin Access Status Banner -->
+        <div id="adminStatusBanner" class="flex items-center gap-2">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Permission Notice if Non-Admin -->
+      <div id="nonAdminNotice" class="hidden p-4 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span><strong>Restricted Access:</strong> You are currently viewing as a non-admin. Role modifications can only be performed by an Administrator.</span>
+        </div>
+        <button
+          type="button"
+          onclick="window.switchPersona && window.switchPersona('Admin')"
+          class="px-3 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs whitespace-nowrap transition-all shadow-md cursor-pointer"
+        >
+          Switch to Admin Persona
+        </button>
+      </div>
+
+      <!-- User Permissions Table -->
+      <div class="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+        <div class="px-5 py-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Registered System Users & Role Assignments</span>
+          <span id="userCountBadge" class="text-[11px] font-bold bg-slate-700 text-slate-300 px-2.5 py-0.5 rounded-full">
+            Loading users...
+          </span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+            <thead class="bg-slate-900/80 text-slate-400 font-bold uppercase text-[11px]">
+              <tr>
+                <th class="px-5 py-3 text-left">User</th>
+                <th class="px-5 py-3 text-left">Email Address</th>
+                <th class="px-5 py-3 text-left">Current Role</th>
+                <th class="px-5 py-3 text-left">Grant New Role</th>
+                <th class="px-5 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Yellow Governance Callout Note -->
+      <div class="excalidraw-callout">
+        Enterprise RBAC Governance: New accounts register as Customer to access counter-offers and quote terms. Internal company roles (Sales Rep, Sales Manager, Finance, Admin) can only be granted by an Administrator here.
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 1. Auth check
-      const userStr = localStorage.getItem('dealflow360_user');
-      const token = localStorage.getItem('dealflow360_token');
-      
-      if (!userStr || !token) {
-        window.location.href = '/login';
-        return;
+  <script is:inline define:vars={{ initialCatalog: products }}>
+    function saveConfig() {
+      if (window.showToast) {
+        window.showToast('Configuration saved! Governance tiers & approval chains updated.', 'success');
       }
+    }
 
-      try {
-        const user = JSON.parse(userStr);
-        if (user.role === 'Customer') {
-          window.location.href = '/portal/quote/1001';
-          return;
-        }
-      } catch (e) {
-        console.warn('User parsing error:', e);
-      }
+    // ==========================================
+    // Commercial Catalog 8-Items-Per-Page Logic
+    // ==========================================
+    let catalogItems = initialCatalog || [];
+    let catalogPage = 1;
+    const catalogPageSize = 8;
+    let catalogSearchQuery = '';
 
-      // 2. Tab switching logic
-      const navButtons = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
+    function renderCatalog() {
+      const tbody = document.getElementById('catalogTableBody');
+      const infoEl = document.getElementById('catalogPaginationInfo');
+      const controlsEl = document.getElementById('catalogPaginationControls');
+      if (!tbody) return;
 
-      navButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const targetTab = btn.getAttribute('data-tab');
-
-          // Reset nav styles
-          navButtons.forEach(b => {
-            b.classList.remove('bg-indigo-50', 'text-indigo-700');
-            b.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
-            const svg = b.querySelector('svg');
-            if (svg) {
-              svg.classList.remove('text-indigo-600');
-              svg.classList.add('text-slate-400');
-            }
-          });
-
-          // Activate clicked button
-          btn.classList.add('bg-indigo-50', 'text-indigo-700');
-          btn.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
-          const activeSvg = btn.querySelector('svg');
-          if (activeSvg) {
-            activeSvg.classList.remove('text-slate-400');
-            activeSvg.classList.add('text-indigo-600');
-          }
-
-          // Toggle tab panels
-          tabContents.forEach(panel => {
-            if (panel.id === `tab-content-${targetTab}`) {
-              panel.classList.remove('hidden');
-            } else {
-              panel.classList.add('hidden');
-            }
-          });
-        });
+      const q = (catalogSearchQuery || '').toLowerCase().trim();
+      const filtered = catalogItems.filter(p => {
+        if (!q) return true;
+        return (p.name && p.name.toLowerCase().includes(q)) || 
+               (p.category && p.category.toLowerCase().includes(q)) || 
+               (p.sku && p.sku.toLowerCase().includes(q));
       });
 
-      // 3. Save All Changes Button
-      const saveBtn = document.getElementById('save-settings-btn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-          const company = (document.getElementById('setting-company') as HTMLInputElement)?.value;
-          const currency = (document.getElementById('setting-currency') as HTMLSelectElement)?.value;
-          const timezone = (document.getElementById('setting-timezone') as HTMLSelectElement)?.value;
+      const totalPages = Math.ceil(filtered.length / catalogPageSize) || 1;
+      if (catalogPage > totalPages) catalogPage = totalPages;
+      if (catalogPage < 1) catalogPage = 1;
 
-          const settingsObj = {
-            company,
-            currency,
-            timezone,
-            updatedAt: new Date().toISOString()
-          };
+      const startIndex = (catalogPage - 1) * catalogPageSize;
+      const pageItems = filtered.slice(startIndex, startIndex + catalogPageSize);
 
-          localStorage.setItem('dealflow360_settings', JSON.stringify(settingsObj));
-          
-          if ((window as any).showToast) {
-            (window as any).showToast('Platform settings saved successfully', 'success');
-          }
+      if (infoEl) {
+        if (filtered.length === 0) {
+          infoEl.textContent = 'Showing 0 of 0 products';
+        } else {
+          infoEl.textContent = `Showing ${startIndex + 1}–${Math.min(startIndex + catalogPageSize, filtered.length)} of ${filtered.length} products`;
+        }
+      }
+
+      tbody.innerHTML = '';
+      if (pageItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 font-medium">No products found matching "${catalogSearchQuery}".</td></tr>`;
+      } else {
+        pageItems.forEach(p => {
+          const isSub = !!p.is_subscription;
+          const isHw = p.category === 'Hardware';
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/40 transition-colors';
+          tr.innerHTML = `
+            <td class="px-4 py-2.5 font-semibold text-white">
+              <div class="flex flex-col leading-tight">
+                <span class="text-xs font-bold text-white">${p.name}</span>
+                <span class="text-[10px] font-mono text-slate-400 mt-0.5">${p.sku || ''}</span>
+              </div>
+            </td>
+            <td class="px-3 py-2.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                isHw ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+              }">
+                ${p.category}
+              </span>
+            </td>
+            <td class="px-3 py-2.5 text-right font-mono font-bold text-white text-xs">$${Number(p.price).toLocaleString()}</td>
+            <td class="px-3 py-2.5 text-center">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                isSub ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'
+              }">
+                ${isSub ? 'Recurring SaaS' : 'One-Time Outlay'}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
       }
+
+      // Render pagination controls
+      if (controlsEl) {
+        controlsEl.innerHTML = '';
+
+        // Prev Button
+        const prevBtn = document.createElement('button');
+        prevBtn.type = 'button';
+        prevBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 text-xs font-bold transition-all ${
+          catalogPage > 1 ? 'hover:bg-slate-800 text-slate-200 cursor-pointer' : 'text-slate-600 opacity-40 cursor-not-allowed'
+        }`;
+        prevBtn.textContent = '← Prev';
+        prevBtn.disabled = catalogPage === 1;
+        prevBtn.onclick = () => {
+          if (catalogPage > 1) {
+            catalogPage--;
+            renderCatalog();
+          }
+        };
+        controlsEl.appendChild(prevBtn);
+
+        // Smart numerical page buttons
+        let startP = Math.max(1, catalogPage - 2);
+        let endP = Math.min(totalPages, startP + 4);
+        if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+        if (startP > 1) {
+          const firstBtn = document.createElement('button');
+          firstBtn.type = 'button';
+          firstBtn.className = 'w-7 h-7 rounded-lg text-xs font-bold border border-slate-700 text-slate-300 hover:bg-slate-800 cursor-pointer';
+          firstBtn.textContent = '1';
+          firstBtn.onclick = () => { catalogPage = 1; renderCatalog(); };
+          controlsEl.appendChild(firstBtn);
+
+          if (startP > 2) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1 text-slate-600 text-xs';
+            ellipsis.textContent = '...';
+            controlsEl.appendChild(ellipsis);
+          }
+        }
+
+        for (let p = startP; p <= endP; p++) {
+          const pBtn = document.createElement('button');
+          pBtn.type = 'button';
+          pBtn.className = `w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            p === catalogPage
+              ? 'bg-sky-400 text-slate-950 shadow-md ring-1 ring-sky-300'
+              : 'border border-slate-700 text-slate-300 hover:bg-slate-800'
+          }`;
+          pBtn.textContent = p;
+          pBtn.onclick = () => {
+            catalogPage = p;
+            renderCatalog();
+          };
+          controlsEl.appendChild(pBtn);
+        }
+
+        if (endP < totalPages) {
+          if (endP < totalPages - 1) {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'px-1 text-slate-600 text-xs';
+            ellipsis.textContent = '...';
+            controlsEl.appendChild(ellipsis);
+          }
+
+          const lastBtn = document.createElement('button');
+          lastBtn.type = 'button';
+          lastBtn.className = 'w-7 h-7 rounded-lg text-xs font-bold border border-slate-700 text-slate-300 hover:bg-slate-800 cursor-pointer';
+          lastBtn.textContent = totalPages;
+          lastBtn.onclick = () => { catalogPage = totalPages; renderCatalog(); };
+          controlsEl.appendChild(lastBtn);
+        }
+
+        // Next Button
+        const nextBtn = document.createElement('button');
+        nextBtn.type = 'button';
+        nextBtn.className = `px-2.5 py-1 rounded-lg border border-slate-700 text-xs font-bold transition-all ${
+          catalogPage < totalPages ? 'hover:bg-slate-800 text-slate-200 cursor-pointer' : 'text-slate-600 opacity-40 cursor-not-allowed'
+        }`;
+        nextBtn.textContent = 'Next →';
+        nextBtn.disabled = catalogPage === totalPages;
+        nextBtn.onclick = () => {
+          if (catalogPage < totalPages) {
+            catalogPage++;
+            renderCatalog();
+          }
+        };
+        controlsEl.appendChild(nextBtn);
+      }
+    }
+
+    window.filterCatalog = function() {
+      const input = document.getElementById('catalogSearchInput');
+      catalogSearchQuery = input ? input.value : '';
+      catalogPage = 1;
+      renderCatalog();
+    };
+
+    const defaultDemoUsers = [
+      { id: 1, name: "Alex Johnson", email: "alex@dealflow360.com", role: "Sales Rep", created_at: "2026-09-01T09:00:00Z" },
+      { id: 2, name: "Sarah Chen", email: "sarah@dealflow360.com", role: "Sales Manager", created_at: "2026-09-01T09:00:00Z" },
+      { id: 3, name: "Michael Rodriguez", email: "michael@dealflow360.com", role: "Finance", created_at: "2026-09-01T09:00:00Z" },
+      { id: 4, name: "Admin User", email: "admin@dealflow360.com", role: "Admin", created_at: "2026-09-01T09:00:00Z" },
+      { id: 5, name: "Acme Corporation", email: "contact@acmecorp.com", role: "Customer", created_at: "2026-09-02T10:30:00Z" }
+    ];
+
+    let allUsersList = [];
+
+    function getRoleBadge(role) {
+      switch(role) {
+        case 'Admin':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/20 text-sky-300 border border-sky-500/40">Admin</span>';
+        case 'Sales Manager':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Sales Manager</span>';
+        case 'Finance':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">Finance</span>';
+        case 'Sales Rep':
+          return '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">Sales Rep</span>';
+        case 'Customer':
+        default:
+          return '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">Customer</span>';
+      }
+    }
+
+    async function loadUsers() {
+      // 1. Try fetching from backend API
+      try {
+        const res = await fetch('http://localhost:8000/api/auth/users');
+        if (res.ok) {
+          allUsersList = await res.json();
+        }
+      } catch(e) {
+        console.warn('Backend unavailable, using local users storage');
+      }
+
+      // 2. Merge with localStorage registered users
+      let localUsers = [];
+      try {
+        localUsers = JSON.parse(localStorage.getItem('dealflow360_all_users') || '[]');
+      } catch(e) {}
+
+      if (allUsersList.length === 0) {
+        allUsersList = [...defaultDemoUsers];
+      }
+
+      // Merge local additions or overrides
+      localUsers.forEach(lu => {
+        const idx = allUsersList.findIndex(u => u.email.toLowerCase() === lu.email.toLowerCase());
+        if (idx >= 0) {
+          allUsersList[idx].role = lu.role;
+        } else {
+          allUsersList.push(lu);
+        }
+      });
+
+      renderUserTable();
+    }
+
+    function renderUserTable() {
+      const tbody = document.getElementById('userTableBody');
+      const countBadge = document.getElementById('userCountBadge');
+      if (!tbody) return;
+
+      countBadge.textContent = `${allUsersList.length} Accounts Registered`;
+
+      // Check current user role
+      let currentRole = 'Sales Rep';
+      try {
+        const u = JSON.parse(localStorage.getItem('dealflow360_user') || '{}');
+        if (u.role) currentRole = u.role;
+      } catch(e) {}
+
+      const isAdmin = currentRole === 'Admin';
+      const statusBanner = document.getElementById('adminStatusBanner');
+      const nonAdminNotice = document.getElementById('nonAdminNotice');
+
+      if (statusBanner) {
+        if (isAdmin) {
+          statusBanner.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Admin Role Assignment Authorized
+            </span>
+          `;
+          if (nonAdminNotice) nonAdminNotice.classList.add('hidden');
+        } else {
+          statusBanner.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              Read-Only (${currentRole})
+            </span>
+          `;
+          if (nonAdminNotice) nonAdminNotice.classList.remove('hidden');
+        }
+      }
+
+      const roles = ["Customer", "Sales Rep", "Sales Manager", "Finance", "Admin"];
+
+      tbody.innerHTML = allUsersList.map(user => {
+        return `
+          <tr class="hover:bg-slate-800/40 transition-colors" data-user-id="${user.id}">
+            <td class="px-5 py-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-sky-400">
+                  ${user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <div class="font-bold text-white text-xs sm:text-sm">${user.name || 'User'}</div>
+                  <div class="text-[10px] text-slate-500">ID #${user.id}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-3 text-slate-300 font-mono text-xs">${user.email}</td>
+            <td class="px-5 py-3" id="roleBadge_${user.id}">
+              ${getRoleBadge(user.role)}
+            </td>
+            <td class="px-5 py-3">
+              <select
+                id="roleSelect_${user.id}"
+                class="bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-sky-400 focus:outline-none ${!isAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}"
+                ${!isAdmin ? 'disabled' : ''}
+              >
+                ${roles.map(r => `<option value="${r}" ${r === user.role ? 'selected' : ''}>${r}</option>`).join('')}
+              </select>
+            </td>
+            <td class="px-5 py-3 text-right">
+              <button
+                type="button"
+                onclick="updateRole(${user.id})"
+                class="px-3.5 py-1.5 bg-sky-400 hover:bg-sky-300 text-slate-950 text-xs font-bold rounded-lg transition-all active:scale-95 shadow-sm ${!isAdmin ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'}"
+                ${!isAdmin ? 'disabled' : ''}
+              >
+                Assign Role
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.updateRole = async function(userId) {
+      const select = document.getElementById(`roleSelect_${userId}`);
+      if (!select) return;
+      const newRole = select.value;
+
+      // 1. Send update to backend API
+      try {
+        const response = await fetch(`http://localhost:8000/api/auth/users/${userId}/role`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: newRole })
+        });
+        if (response.ok) {
+          const resData = await response.json();
+          console.log('Role updated on backend:', resData);
+        }
+      } catch(e) {
+        console.warn('Backend unavailable, updating locally');
+      }
+
+      // 2. Update allUsersList
+      const user = allUsersList.find(u => u.id === userId);
+      if (user) {
+        user.role = newRole;
+
+        // 3. Persist to dealflow360_all_users
+        let localUsers = [];
+        try {
+          localUsers = JSON.parse(localStorage.getItem('dealflow360_all_users') || '[]');
+        } catch(e) {}
+        const idx = localUsers.findIndex(u => u.email.toLowerCase() === user.email.toLowerCase());
+        if (idx >= 0) {
+          localUsers[idx].role = newRole;
+        } else {
+          localUsers.push({ ...user, role: newRole });
+        }
+        localStorage.setItem('dealflow360_all_users', JSON.stringify(localUsers));
+
+        // 4. If this user is currently active session, update their active user object too
+        try {
+          const currentUser = JSON.parse(localStorage.getItem('dealflow360_user') || '{}');
+          if (currentUser.email && currentUser.email.toLowerCase() === user.email.toLowerCase()) {
+            currentUser.role = newRole;
+            localStorage.setItem('dealflow360_user', JSON.stringify(currentUser));
+          }
+        } catch(e) {}
+
+        // 5. Update badge UI
+        const badgeCell = document.getElementById(`roleBadge_${userId}`);
+        if (badgeCell) {
+          badgeCell.innerHTML = getRoleBadge(newRole);
+        }
+
+        if (window.showToast) {
+          window.showToast(`Updated ${user.name}'s role to ${newRole}`, 'success');
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCatalog();
+      loadUsers();
     });
   </script>
 </Layout>

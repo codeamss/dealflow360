@@ -108,18 +108,22 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
-  const mockRegister = (name, email, password, role) => {
+  const mockRegister = (name, email, password, role = 'Customer') => {
     // Check if user already exists
-    if (mockUsers.some(u => u.email === email)) {
+    if (mockUsers.some(u => u.email.toLowerCase() === email.toLowerCase())) {
       throw new Error('Email already registered');
     }
+
+    // Enterprise rule: All self-registered users are enrolled as 'Customer'
+    // Internal roles must be granted by an Admin
+    const assignedRole = 'Customer';
 
     const newUser = {
       id: mockUsers.length + 1,
       name,
       email,
-      role,
-      token: `mock_token_${role.toLowerCase().replace(' ', '_')}_${Date.now()}`
+      role: assignedRole,
+      token: `mock_token_customer_${Date.now()}`
     };
 
     mockUsers.push(newUser);
@@ -173,14 +177,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, role) => {
+  const register = async (name, email, password) => {
     try {
       const response = await fetch('http://localhost:8000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role: 'Customer' }),
       });
 
       if (!response.ok) {
@@ -198,7 +202,7 @@ export const AuthProvider = ({ children }) => {
       return data;
     } catch (error) {
       console.warn('Backend registration failed, falling back to mock:', error.message);
-      return mockRegister(name, email, password, role);
+      return mockRegister(name, email, password);
     }
   };
 

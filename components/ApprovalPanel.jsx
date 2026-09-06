@@ -1,514 +1,432 @@
 import { useState, useEffect } from "react";
-import { quotations as mockQuotations } from "../mockData.js";
+import { approvals as mockApprovals } from "../mockData.js";
+
+// Generate rich rows from 210+ mock approvals
+const ALL_APPROVAL_ROWS = mockApprovals.map(a => ({
+  id: `Q-${a.quotation_id}`,
+  numericId: a.quotation_id,
+  customer: a.customer,
+  tier: a.blended_risk >= 25 ? "Gold" : (a.blended_risk >= 15 ? "Silver" : "Bronze"),
+  blendedRisk: a.risk_level,
+  riskScore: a.blended_risk,
+  stage: a.stage,
+  assignedTo: a.assigned_to,
+  status: a.status,
+  lines: [
+    { name: a.breach_line, given: `${a.breach_discount}%`, limit: `${a.allowed_limit}%`, overBy: `${a.over_by} pt OVER`, isBreach: a.over_by > 0 }
+  ],
+  auditLogs: a.audit_history.map(h => ({ user: h.user, action: h.action, date: h.date, note: h.note }))
+}));
 
 export default function ApprovalPanel() {
-  const [quotes, setQuotes] = useState([]);
-  const [selectedQuoteId, setSelectedQuoteId] = useState(1002);
-  const [riskScore, setRiskScore] = useState(35);
-  const [status, setStatus] = useState("Pending Approval");
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [approvalLogs, setApprovalLogs] = useState([
-    {
-      id: 1,
-      reviewer: "Alex Johnson",
-      role: "Sales Rep",
-      action: "Submitted for Approval",
-      reason: "Discount of 15% requested for enterprise volume purchase",
-      timestamp: "2026-09-02T14:15:00Z"
-    },
-    {
-      id: 2,
-      reviewer: "Sarah Chen",
-      role: "Sales Manager",
-      action: "Reviewed",
-      reason: "Exceeds standard 10% tier; requires executive sign-off",
-      timestamp: "2026-09-02T16:30:00Z"
-    }
-  ]);
+  const [rows, setRows] = useState(ALL_APPROVAL_ROWS);
+  const [selectedQuoteId, setSelectedQuoteId] = useState(ALL_APPROVAL_ROWS[0]?.id || "Q-1042");
+  const [filterPendingOnly, setFilterPendingOnly] = useState(false);
+  const [activeStep, setActiveStep] = useState(2); // 1: Submitted, 2: Sales Manager, 3: Finance, 4: Confirmed
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
-  // Load quotes from mockData + localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("dealflow360_custom_quotes");
-      const customQuotes = saved ? JSON.parse(saved) : [];
-      const merged = [...customQuotes, ...mockQuotations];
-      setQuotes(merged);
+  // Selected quotation record
+  const currentQuote = rows.find(r => r.id === selectedQuoteId) || rows[0];
 
-      // Default to quote 1002 or first pending quote
-      const pendingQuote = merged.find(q => q.status === "Pending Approval") || merged[0];
-      if (pendingQuote) {
-        setSelectedQuoteId(pendingQuote.id);
-        setStatus(pendingQuote.status || "Pending Approval");
-        setRiskScore(pendingQuote.blended_risk_score || 35);
-      }
-    } catch (e) {
-      console.warn("Could not load quotes for approval panel:", e);
-      setQuotes(mockQuotations);
-    }
-  }, []);
+  // Counts for pills
+  const pendingCount = rows.filter(r => r.status === "Pending").length;
+  const returnedCount = rows.filter(r => r.status === "Returned").length;
+  const approvedCount = rows.filter(r => r.status === "Approved").length;
 
-  // When selected quote changes, update view
-  const handleSelectQuote = (id) => {
-    const qId = parseInt(id);
-    setSelectedQuoteId(qId);
-    const q = quotes.find(item => item.id === qId);
-    if (q) {
-      setStatus(q.status || "Pending Approval");
-      setRiskScore(q.blended_risk_score !== undefined ? q.blended_risk_score : 25);
-      setApprovalLogs(prev => [
-        {
-          id: Date.now(),
-          reviewer: "System",
-          role: "Audit Log",
-          action: "Loaded Quotation",
-          reason: `Loaded quote #${q.id} for ${q.customer_name}`,
-          timestamp: new Date().toISOString()
-        },
-        ...prev.slice(0, 3)
-      ]);
-    }
-  };
-
-  const currentQuote = quotes.find(q => q.id === selectedQuoteId) || quotes[0] || {
-    id: 1002,
-    customer_name: "Global Tech Inc",
-    status: "Pending Approval",
-    total_price: 25600,
-    lines: []
-  };
-
-  const updateQuoteStatusInStorage = (newStatus) => {
-    try {
-      const saved = localStorage.getItem("dealflow360_custom_quotes");
-      let customQuotes = saved ? JSON.parse(saved) : [];
-      const existsInCustom = customQuotes.some(q => q.id === selectedQuoteId);
-      
-      if (existsInCustom) {
-        customQuotes = customQuotes.map(q => 
-          q.id === selectedQuoteId ? { ...q, status: newStatus, blended_risk_score: riskScore } : q
-        );
-      } else {
-        // Add as custom override
-        customQuotes.unshift({
-          ...currentQuote,
-          status: newStatus,
-          blended_risk_score: riskScore
-        });
-      }
-      localStorage.setItem("dealflow360_custom_quotes", JSON.stringify(customQuotes));
-      
-      // Update local state quotes
-      setQuotes(prev => prev.map(q => q.id === selectedQuoteId ? { ...q, status: newStatus } : q));
-    } catch (e) {
-      console.warn("Could not persist quote update:", e);
-    }
-  };
+  const displayRows = filterPendingOnly ? rows.filter(r => r.status === "Pending") : rows;
+  const totalPages = Math.ceil(displayRows.length / pageSize) || 1;
+  const paginatedRows = displayRows.slice((page - 1) * pageSize, page * pageSize);
 
   const handleApprove = () => {
-    const newLog = {
-      id: Date.now(),
-      reviewer: "Sarah Chen",
-      role: "Sales Director",
-      action: "Approved",
-      reason: `Quotation #${selectedQuoteId} approved for order execution`,
-      timestamp: new Date().toISOString()
-    };
-    setApprovalLogs([newLog, ...approvalLogs]);
-    setStatus("Approved");
-    updateQuoteStatusInStorage("Approved");
-    if (typeof window !== "undefined" && window.showToast) {
-      window.showToast(`Quotation #${selectedQuoteId} approved successfully`, "success");
-    }
-  };
-
-  const handleReject = () => {
-    if (!rejectionReason.trim()) {
-      if (typeof window !== "undefined" && window.showToast) {
-        window.showToast("Please provide a reason for rejection", "error");
+    setRows(prev => prev.map(r => {
+      if (r.id === selectedQuoteId) {
+        return {
+          ...r,
+          status: "Approved",
+          stage: "Confirmed",
+          auditLogs: [
+            ...r.auditLogs,
+            { user: "You (Reviewer)", action: "Approved", date: "Just now", note: "Quotation ratified and approved" }
+          ]
+        };
       }
-      return;
-    }
-    
-    const newLog = {
-      id: Date.now(),
-      reviewer: "Sarah Chen",
-      role: "Sales Director",
-      action: "Rejected",
-      reason: rejectionReason,
-      timestamp: new Date().toISOString()
-    };
-    setApprovalLogs([newLog, ...approvalLogs]);
-    setStatus("Rejected");
-    updateQuoteStatusInStorage("Rejected");
-    setShowRejectModal(false);
-    setRejectionReason("");
-    if (typeof window !== "undefined" && window.showToast) {
-      window.showToast(`Quotation #${selectedQuoteId} rejected`, "error");
+      return r;
+    }));
+    setActiveStep(4);
+    if (window.showToast) {
+      window.showToast(`Quotation ${selectedQuoteId} approved successfully`, "success");
     }
   };
 
   const handleReturn = () => {
-    const newLog = {
-      id: Date.now(),
-      reviewer: "Sarah Chen",
-      role: "Sales Director",
-      action: "Returned for Revision",
-      reason: "Discount exceeds margin threshold. Lower line discounts by 5% or increase volume commitment.",
-      timestamp: new Date().toISOString()
-    };
-    setApprovalLogs([newLog, ...approvalLogs]);
-    setStatus("Draft");
-    updateQuoteStatusInStorage("Draft");
-    if (typeof window !== "undefined" && window.showToast) {
-      window.showToast(`Quotation #${selectedQuoteId} returned for revision`, "info");
+    setRows(prev => prev.map(r => {
+      if (r.id === selectedQuoteId) {
+        return {
+          ...r,
+          status: "Returned",
+          stage: "Revision Needed",
+          auditLogs: [
+            ...r.auditLogs,
+            { user: "You (Reviewer)", action: "Returned", date: "Just now", note: "Returned for revision: discount exceeds allowable floor" }
+          ]
+        };
+      }
+      return r;
+    }));
+    if (window.showToast) {
+      window.showToast(`Quotation ${selectedQuoteId} returned for revision`, "info");
     }
   };
 
-  const calculateRisk = () => {
-    // Dynamic risk based on total price and discount
-    let calculated = 15;
-    if (currentQuote.lines && currentQuote.lines.length > 0) {
-      const avgDiscount = currentQuote.lines.reduce((sum, l) => sum + (l.applied_discount || 0), 0) / currentQuote.lines.length;
-      calculated = Math.min(Math.round(avgDiscount * 2.2 + (currentQuote.total_price > 20000 ? 12 : 5)), 95);
-    } else {
-      calculated = Math.floor(Math.random() * 30) + 15;
-    }
-
-    setRiskScore(calculated);
-    const newLog = {
-      id: Date.now(),
-      reviewer: "Risk Engine AI",
-      role: "Automated Governance",
-      action: "Risk Evaluated",
-      reason: `Recalculated blended risk index to ${calculated}% based on line item margins & credit history`,
-      timestamp: new Date().toISOString()
-    };
-    setApprovalLogs([newLog, ...approvalLogs]);
-    if (typeof window !== "undefined" && window.showToast) {
-      window.showToast(`Risk recalculated: ${calculated}%`, "info");
+  const handleReject = () => {
+    setRows(prev => prev.map(r => {
+      if (r.id === selectedQuoteId) {
+        return {
+          ...r,
+          status: "Rejected",
+          stage: "Rejected",
+          auditLogs: [
+            ...r.auditLogs,
+            { user: "You (Reviewer)", action: "Rejected", date: "Just now", note: "Commercial margins unacceptable" }
+          ]
+        };
+      }
+      return r;
+    }));
+    if (window.showToast) {
+      window.showToast(`Quotation ${selectedQuoteId} rejected`, "error");
     }
   };
-
-  const getRiskLevel = () => {
-    if (riskScore <= 15) return { level: "Low", color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-    if (riskScore <= 30) return { level: "Medium", color: "bg-amber-50 text-amber-700 border-amber-200" };
-    if (riskScore <= 50) return { level: "High", color: "bg-orange-50 text-orange-700 border-orange-200" };
-    return { level: "Critical", color: "bg-rose-50 text-rose-700 border-rose-200" };
-  };
-
-  const getStatusBadge = () => {
-    switch (status) {
-      case "Approved":
-      case "Confirmed":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-      case "Rejected":
-        return "bg-rose-50 text-rose-700 border-rose-200";
-      case "Pending Approval":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      default:
-        return "bg-indigo-50 text-indigo-700 border-indigo-200";
-    }
-  };
-
-  const riskLevel = getRiskLevel();
 
   return (
-    <div className="space-y-6">
-      {/* Top Header Card with Quote Selector */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-6 border-b border-slate-100">
+    <div className="space-y-10 max-w-[1500px] mx-auto">
+      
+      {/* ========================================================================= */}
+      {/* TOP SECTION: Approvals (List) - Matching Excalidraw Approvals List Screen */}
+      {/* ========================================================================= */}
+      <div className="space-y-4 bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-xl">
+        <div>
+          <h2 className="text-2xl font-black text-white tracking-tight">Approvals (List)</h2>
+          <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+            Every quotation that needed, needs, or is going through discount approval
+          </p>
+        </div>
+
+        {/* 3 Metric Pills */}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <div className="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>{pendingCount} Pending</span>
+          </div>
+          <div className="px-3.5 py-1.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm flex items-center gap-1.5">
+            <span>{returnedCount} Returned</span>
+          </div>
+          <div className="px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm flex items-center gap-1.5">
+            <span>{approvedCount} Approved</span>
+          </div>
+        </div>
+
+        {/* Approvals Table */}
+        <div className="border border-slate-700 rounded-xl overflow-hidden shadow-lg bg-slate-950/40">
+          <table className="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+            <thead className="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th className="px-5 py-3 text-left">Quotation</th>
+                <th className="px-5 py-3 text-left">Customer</th>
+                <th className="px-4 py-3 text-center">Blended Risk</th>
+                <th className="px-5 py-3 text-left">Stage</th>
+                <th className="px-5 py-3 text-left">Assigned To</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/80">
+              {paginatedRows.map((row) => {
+                const isSelected = row.id === selectedQuoteId;
+                return (
+                  <tr
+                    key={row.id}
+                    onClick={() => setSelectedQuoteId(row.id)}
+                    className={`cursor-pointer transition-colors ${
+                      isSelected ? "bg-sky-950/50 border-l-4 border-l-sky-400" : "hover:bg-slate-800/60"
+                    }`}
+                  >
+                    <td className="px-5 py-3.5 font-mono font-bold text-sky-400">
+                      {row.id}
+                    </td>
+                    <td className="px-5 py-3.5 font-semibold text-white">
+                      {row.customer}
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-black tracking-wider uppercase border ${
+                        row.blendedRisk === "HIGH" 
+                          ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                          : row.blendedRisk === "MEDIUM"
+                          ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                          : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                      }`}>
+                        {row.blendedRisk}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-300 font-medium">
+                      {row.stage}
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-400 font-mono">
+                      {row.assignedTo}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-center px-4 py-3 rounded-xl bg-slate-950/50 border border-slate-800 text-xs text-slate-400 gap-3">
           <div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-bold text-slate-900">Governance & Approval Hub</h2>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadge()}`}>
-                {status}
-              </span>
-            </div>
-            <p className="text-slate-600 text-sm mt-1">
-              Multi-tiered policy evaluation and executive authorization engine
-            </p>
+            Showing {displayRows.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, displayRows.length)} of {displayRows.length} approval tickets
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Select Quote:</label>
-            <select
-              value={selectedQuoteId}
-              onChange={(e) => handleSelectQuote(e.target.value)}
-              className="px-3 py-2 text-sm font-medium border border-slate-300 rounded-lg bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all shadow-sm"
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={page === 1}
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              className={`px-3 py-1 rounded-lg border border-slate-700 font-bold transition-all ${
+                page > 1 ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'
+              }`}
             >
-              {quotes.map(q => (
-                <option key={q.id} value={q.id}>
-                  #{q.id} - {q.customer_name} (${(q.total_price || 0).toLocaleString()})
-                </option>
-              ))}
-            </select>
+              ← Prev
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum = page - 2 + i;
+              if (pageNum < 1) pageNum = i + 1;
+              if (pageNum > totalPages) return null;
+              return (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => setPage(pageNum)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
+                    page === pageNum ? 'bg-sky-400 text-slate-950 shadow-md' : 'border border-slate-700 text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+              className={`px-3 py-1 rounded-lg border border-slate-700 font-bold transition-all ${
+                page < totalPages ? 'hover:bg-slate-800 text-slate-200' : 'text-slate-600 cursor-not-allowed'
+              }`}
+            >
+              Next →
+            </button>
           </div>
         </div>
 
-        {/* Selected Quote Summary Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-            <span className="text-xs text-slate-500 font-medium">Customer</span>
-            <p className="text-sm font-bold text-slate-900 truncate mt-0.5">{currentQuote.customer_name}</p>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-            <span className="text-xs text-slate-500 font-medium">Quoted Total</span>
-            <p className="text-sm font-bold text-indigo-600 mt-0.5">${(currentQuote.total_price || 0).toLocaleString()}</p>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-            <span className="text-xs text-slate-500 font-medium">Line Items</span>
-            <p className="text-sm font-bold text-slate-900 mt-0.5">{currentQuote.lines ? currentQuote.lines.length : 0} items</p>
-          </div>
-          <div className="p-3 bg-slate-50 rounded-lg border border-slate-100">
-            <span className="text-xs text-slate-500 font-medium">Policy Tier</span>
-            <p className="text-sm font-bold text-amber-700 mt-0.5">Tier 2 (Manager + VP)</p>
-          </div>
+        {/* Yellow Callout Box matching Excalidraw */}
+        <div className="excalidraw-callout">
+          Click any row to open its full approval detail, risk breakdown, and audit trail.
+        </div>
+
+        {/* Filter Button */}
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setFilterPendingOnly(!filterPendingOnly)}
+            className={`px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
+              filterPendingOnly 
+                ? "bg-sky-400 text-slate-950 border-sky-300"
+                : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-600"
+            }`}
+          >
+            {filterPendingOnly ? "✓ Filtering: Pending Only" : "Filter: Pending Only"}
+          </button>
         </div>
       </div>
 
-      {/* Risk Assessment Block */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h3 className="font-bold text-slate-900 text-base">Algorithmic Risk Assessment</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Blended risk index evaluating discount depth, margin floor, and credit exposure</p>
-          </div>
-          <button
-            onClick={calculateRisk}
-            className="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition-all"
-          >
-            <svg className="w-4 h-4 mr-1.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Recalculate Risk
-          </button>
-        </div>
+
+      {/* ========================================================================================= */}
+      {/* BOTTOM SECTION: Screen 6: Approval Detail - Matching Excalidraw Screen 6 Exactly         */}
+      {/* ========================================================================================= */}
+      <div className="space-y-6 bg-slate-900/95 border-2 border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl">
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-          <div className="text-center p-6 rounded-xl border border-slate-200 bg-slate-50/50">
-            <div className="text-5xl font-black text-slate-900 tracking-tight mb-2">{riskScore}%</div>
-            <div className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border mb-2 ${riskLevel.color}`}>
-              {riskLevel.level} Risk Index
-            </div>
-            <p className="text-xs text-slate-500">
-              Auto-triggers VP authorization when score exceeds 30%
+        {/* Header & Badges */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-800">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tight">
+              Approval Detail: {currentQuote.id} ({currentQuote.customer})
+            </h2>
+            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">
+              Opened by clicking a row on the Approvals list
             </p>
           </div>
-          
-          <div className="lg:col-span-2 space-y-4">
-            <div>
-              <div className="flex justify-between text-xs font-medium mb-1.5">
-                <span className="text-slate-600">Discount Deviation Risk</span>
-                <span className="font-bold text-slate-900">{Math.min(riskScore + 8, 100)}%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                <div 
-                  className="bg-amber-500 h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(riskScore + 8, 100)}%` }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs font-medium mb-1.5">
-                <span className="text-slate-600">Customer Credit Health</span>
-                <span className="font-bold text-slate-900">{Math.max(100 - riskScore, 10)}%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                <div 
-                  className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.max(100 - riskScore, 10)}%` }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-xs font-medium mb-1.5">
-                <span className="text-slate-600">Net Margin Cushion</span>
-                <span className="font-bold text-slate-900">{Math.max(85 - riskScore, 5)}%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                <div 
-                  className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.max(85 - riskScore, 5)}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Approval Actions Bar */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-bold text-slate-900 text-base mb-4">Executive Actions</h3>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button
-            onClick={handleApprove}
-            disabled={status === "Approved" || status === "Confirmed"}
-            className={`px-5 py-3.5 rounded-lg text-sm font-semibold flex items-center justify-center transition-all shadow-sm ${
-              status === "Approved" || status === "Confirmed"
-                ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-                : "bg-emerald-600 hover:bg-emerald-700 text-white active:scale-[0.98]"
-            }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            {status === "Approved" ? "Already Approved" : "Approve Quotation"}
-          </button>
-          
-          <button
-            onClick={handleReturn}
-            className="px-5 py-3.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-sm font-semibold flex items-center justify-center shadow-sm transition-all active:scale-[0.98]"
-          >
-            <svg className="w-5 h-5 mr-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-            </svg>
-            Return for Revision
-          </button>
-          
-          <button
-            onClick={() => setShowRejectModal(true)}
-            disabled={status === "Rejected"}
-            className={`px-5 py-3.5 rounded-lg text-sm font-semibold flex items-center justify-center transition-all shadow-sm ${
-              status === "Rejected"
-                ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-                : "bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 active:scale-[0.98]"
-            }`}
-          >
-            <svg className="w-5 h-5 mr-2 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            {status === "Rejected" ? "Rejected" : "Reject Quotation"}
-          </button>
-        </div>
-      </div>
-
-      {/* Modal for Rejection */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.948-.833-2.678 0L4.196 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900">Reject Quotation #{selectedQuoteId}</h3>
-                <p className="text-xs text-slate-500">Provide formal feedback for the sales representative</p>
-              </div>
-            </div>
-
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="Specify the reason for rejection (e.g., margins under minimum floor, unapproved extended payment terms)..."
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none placeholder:text-slate-400"
-              rows={4}
-              autoFocus
-            />
-
-            <div className="flex justify-end gap-3 mt-5">
-              <button
-                onClick={() => setShowRejectModal(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                className="px-4 py-2 text-sm font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-all shadow-sm active:scale-[0.98]"
-              >
-                Confirm Rejection
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Multi-Tier Governance Progression */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-bold text-slate-900 text-base mb-4">Governance Policy Gates</h3>
-        <div className="space-y-3">
-          <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-            status === "Approved" || status === "Confirmed"
-              ? "bg-emerald-50/70 border-emerald-200" 
-              : "bg-slate-50 border-slate-200"
-          }`}>
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mr-3.5 ${
-                status === "Approved" || status === "Confirmed"
-                  ? "bg-emerald-600 text-white" 
-                  : "bg-slate-200 text-slate-700"
-              }`}>
-                1
-              </div>
-              <div>
-                <div className="font-semibold text-sm text-slate-900">Commercial Sales Director Approval</div>
-                <div className="text-xs text-slate-500">Mandatory for all quotes with discounts above 10%</div>
-              </div>
-            </div>
-            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
-              status === "Approved" || status === "Confirmed"
-                ? "bg-emerald-100 text-emerald-800 border-emerald-300"
-                : "bg-amber-100 text-amber-800 border-amber-300"
-            }`}>
-              {status === "Approved" || status === "Confirmed" ? "Passed" : "Awaiting Action"}
+          <div className="flex items-center gap-2">
+            {/* Blended Risk Pill (Rose/Red) */}
+            <span className="px-3.5 py-1 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/50">
+              Blended Risk: {currentQuote.blendedRisk}
+            </span>
+            {/* Customer Tier Pill (Sky Blue) */}
+            <span className="px-3.5 py-1 rounded-full text-xs font-black bg-sky-500/20 text-sky-300 border border-sky-500/50">
+              Customer Tier: {currentQuote.tier}
             </span>
           </div>
+        </div>
+
+        {/* Section: Why This Quote Was Flagged */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-sky-400 tracking-wide">Why This Quote Was Flagged</h3>
           
-          <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-            riskScore > 30 ? "bg-amber-50/70 border-amber-200" : "bg-slate-50 border-slate-200"
-          }`}>
-            <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs mr-3.5 ${
-                riskScore > 30 ? "bg-amber-600 text-white" : "bg-slate-200 text-slate-700"
+          <div className="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+            <table className="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+              <thead className="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="px-5 py-3 text-left">Line</th>
+                  <th className="px-4 py-3 text-center">Discount Given</th>
+                  <th className="px-4 py-3 text-center">Limit Allowed</th>
+                  <th className="px-5 py-3 text-left">Over By</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {currentQuote.lines.map((line, idx) => (
+                  <tr key={idx} className={line.isBreach ? "bg-rose-950/20" : ""}>
+                    <td className="px-5 py-3.5 font-bold text-white">
+                      {line.name}
+                    </td>
+                    <td className="px-4 py-3.5 text-center font-mono font-bold text-amber-400">
+                      {line.given}
+                    </td>
+                    <td className="px-4 py-3.5 text-center font-mono text-slate-400">
+                      {line.limit}
+                    </td>
+                    <td className="px-5 py-3.5 font-bold font-mono">
+                      <span className={line.isBreach ? "text-rose-400 font-black" : "text-emerald-400"}>
+                        {line.overBy}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Yellow Callout Box matching Excalidraw */}
+        <div className="excalidraw-callout">
+          Worst single line (8pt over) plus overall pattern across the order sets the blended score. One bad line is enough to require approval.
+        </div>
+
+        {/* 4-Step Stepper (Submitted -> Sales Manager -> Finance -> Confirmed) */}
+        <div className="py-6 px-4 bg-slate-950/40 rounded-xl border border-slate-800">
+          <div className="flex items-center justify-between max-w-2xl mx-auto relative">
+            {/* Connecting line */}
+            <div className="absolute left-8 right-8 top-5 h-0.5 bg-slate-700 -z-0"></div>
+
+            {/* Step 1: Submitted */}
+            <div className="flex flex-col items-center relative z-10">
+              <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-md border-2 border-slate-900">
+                ✓
+              </div>
+              <span className="text-xs font-bold text-slate-300 mt-2">Submitted</span>
+            </div>
+
+            {/* Step 2: Sales Manager */}
+            <div className="flex flex-col items-center relative z-10">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-md border-2 border-slate-900 ${
+                activeStep >= 2 ? "bg-sky-500 text-slate-950 ring-4 ring-sky-500/30" : "bg-slate-700 text-slate-400"
               }`}>
                 2
               </div>
-              <div>
-                <div className="font-semibold text-sm text-slate-900">Finance & Credit Controller Sign-Off</div>
-                <div className="text-xs text-slate-500">Required when algorithmic risk index exceeds 30%</div>
-              </div>
+              <span className="text-xs font-bold text-sky-400 mt-2">Sales Manager</span>
             </div>
-            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${
-              riskScore > 30 
-                ? "bg-amber-100 text-amber-800 border-amber-300" 
-                : "bg-slate-100 text-slate-600 border-slate-200"
-            }`}>
-              {riskScore > 30 ? "Gate Active" : "Bypassed (Low Risk)"}
-            </span>
+
+            {/* Step 3: Finance */}
+            <div className="flex flex-col items-center relative z-10">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-md border-2 border-slate-900 ${
+                activeStep >= 3 ? "bg-purple-600 text-white" : "bg-slate-800 text-slate-400 border border-slate-700"
+              }`}>
+                3
+              </div>
+              <span className="text-xs font-bold text-slate-400 mt-2">Finance</span>
+            </div>
+
+            {/* Step 4: Confirmed */}
+            <div className="flex flex-col items-center relative z-10">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm shadow-md border-2 border-slate-900 ${
+                activeStep >= 4 ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-400 border border-slate-700"
+              }`}>
+                4
+              </div>
+              <span className="text-xs font-bold text-slate-400 mt-2">Confirmed</span>
+            </div>
           </div>
         </div>
+
+        {/* Audit Log Table */}
+        <div className="space-y-2">
+          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Audit Log</h4>
+          <div className="border border-slate-700 rounded-xl overflow-hidden bg-slate-950/40">
+            <table className="min-w-full divide-y divide-slate-700 text-xs sm:text-sm">
+              <thead className="bg-slate-800/80 text-slate-300 font-bold uppercase tracking-wider text-[11px]">
+                <tr>
+                  <th className="px-5 py-2.5 text-left">User</th>
+                  <th className="px-5 py-2.5 text-left">Action</th>
+                  <th className="px-4 py-2.5 text-left">Date</th>
+                  <th className="px-5 py-2.5 text-left">Note</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80 text-slate-300">
+                {currentQuote.auditLogs.map((log, idx) => (
+                  <tr key={idx} className="hover:bg-slate-800/40">
+                    <td className="px-5 py-2.5 font-bold text-white font-mono">{log.user}</td>
+                    <td className="px-5 py-2.5 text-sky-400 font-medium">{log.action}</td>
+                    <td className="px-4 py-2.5 text-slate-400 font-mono text-xs">{log.date}</td>
+                    <td className="px-5 py-2.5 text-slate-300">{log.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Bottom Action Buttons: Approve / Return for Revision / Reject */}
+        <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-slate-800">
+          <button
+            type="button"
+            onClick={handleApprove}
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+          >
+            <span>✓</span>
+            <span>Approve</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleReturn}
+            className="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-black text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+          >
+            <span>↺</span>
+            <span>Return for Revision</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleReject}
+            className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black text-sm rounded-xl transition-all shadow-lg flex items-center gap-2"
+          >
+            <span>✕</span>
+            <span>Reject</span>
+          </button>
+        </div>
+
       </div>
 
-      {/* Approval Audit Trail */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-bold text-slate-900 text-base mb-4">Immutable Audit Trail</h3>
-        <div className="space-y-3">
-          {approvalLogs.map((log) => (
-            <div key={log.id} className="border-l-4 border-indigo-600 pl-4 py-3 bg-slate-50/60 rounded-r-lg">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-bold text-slate-900 text-sm">{log.reviewer}</div>
-                  <div className="text-xs text-indigo-700 font-medium mt-0.5">{log.role} &bull; {log.action}</div>
-                </div>
-                <div className="text-xs text-slate-500">
-                  {new Date(log.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-              {log.reason && (
-                <div className="mt-2 text-slate-700 bg-white p-2.5 rounded border border-slate-200 text-xs">
-                  {log.reason}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

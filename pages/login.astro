@@ -8,29 +8,29 @@ import Layout from '../Layout.astro';
       
       <!-- Brand Header -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-indigo-600 to-indigo-500 rounded-2xl shadow-lg shadow-indigo-200 mb-4 mx-auto">
+        <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-sky-500 to-indigo-600 rounded-2xl shadow-xl shadow-sky-500/20 mb-4 mx-auto border border-sky-400/30">
           <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
         </div>
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">DealFlow360</h1>
-        <p class="text-slate-600 text-sm mt-1">
+        <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">DealFlow<span class="text-sky-400">360</span></h1>
+        <p class="text-slate-400 text-sm mt-1 font-medium">
           Executive B2B Sales Quoting & Pipeline Platform
         </p>
       </div>
 
       <!-- Login Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-8">
+      <div class="bg-slate-900/90 rounded-2xl border border-slate-700/80 shadow-2xl p-6 sm:p-8 text-white">
         
-        <div id="loginAlert" class="hidden mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-medium flex items-center gap-2">
-          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div id="loginAlert" class="hidden mb-4 p-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 rounded-xl text-xs font-semibold flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span id="loginAlertMsg">Invalid credentials</span>
         </div>
 
         <!-- Login Form -->
         <form id="login-form" class="space-y-4">
           <div>
-            <label for="email" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+            <label for="email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Email address
             </label>
             <input
@@ -38,24 +38,24 @@ import Layout from '../Layout.astro';
               id="email"
               name="email"
               required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
               placeholder="alex@dealflow360.com"
             />
           </div>
 
           <div>
             <div class="flex justify-between items-center mb-1.5">
-              <label for="password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <label for="password" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Password
               </label>
-              <span class="text-[11px] text-slate-400">Demo: password123</span>
+              <span class="text-[11px] text-slate-400 font-mono">Demo: password123</span>
             </div>
             <input
               type="password"
               id="password"
               name="password"
               required
-              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 transition-all"
+              class="w-full rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-400 placeholder:text-slate-500 font-medium transition-all"
               placeholder="••••••••"
             />
           </div>
@@ -64,73 +64,73 @@ import Layout from '../Layout.astro';
             <button
               type="submit"
               id="submitBtn"
-              class="w-full flex justify-center py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-200 transition-all"
+              class="w-full flex justify-center py-3 px-4 bg-sky-400 hover:bg-sky-300 active:scale-[0.99] text-slate-950 text-sm font-black rounded-xl shadow-lg transition-all cursor-pointer"
             >
               Sign in to Dashboard
             </button>
           </div>
 
           <div class="text-center pt-2">
-            <a href="/register" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-              Need an internal account? Register here →
+            <a href="/register" class="text-sm text-sky-400 hover:text-sky-300 font-semibold transition-colors">
+              Need an account? Register here →
             </a>
           </div>
         </form>
 
         <!-- Quick Demo Profiles Section -->
-        <div class="mt-6 pt-5 border-t border-slate-100">
+        <div class="mt-6 pt-5 border-t border-slate-800">
           <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quick Demo Access</span>
-            <span class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-medium">1-Click Login</span>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Quick Demo Presets</span>
+            <span class="text-[10px] text-sky-300 bg-sky-500/20 border border-sky-500/30 px-2.5 py-0.5 rounded-full font-bold">1-Click Role Preview</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
             <button 
               type="button" 
-              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:border-sky-400/60 hover:bg-slate-800 transition-all group cursor-pointer"
               data-role="Sales Rep"
             >
-              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Sales Rep</div>
-              <div class="text-[10px] text-slate-500">Alex Johnson</div>
+              <div class="text-xs font-bold text-white group-hover:text-sky-300">Sales Rep</div>
+              <div class="text-[10px] text-slate-400">Alex Johnson</div>
             </button>
 
             <button 
               type="button" 
-              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:border-sky-400/60 hover:bg-slate-800 transition-all group cursor-pointer"
               data-role="Sales Manager"
             >
-              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Sales Manager</div>
-              <div class="text-[10px] text-slate-500">Sarah Chen</div>
+              <div class="text-xs font-bold text-white group-hover:text-sky-300">Sales Manager</div>
+              <div class="text-[10px] text-slate-400">Sarah Chen</div>
             </button>
 
             <button 
               type="button" 
-              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:border-sky-400/60 hover:bg-slate-800 transition-all group cursor-pointer"
               data-role="Finance"
             >
-              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">Finance Reviewer</div>
-              <div class="text-[10px] text-slate-500">Michael Rodriguez</div>
+              <div class="text-xs font-bold text-white group-hover:text-sky-300">Finance Reviewer</div>
+              <div class="text-[10px] text-slate-400">Michael Rodriguez</div>
             </button>
 
             <button 
               type="button" 
-              class="demo-login text-left p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all group"
+              class="demo-login text-left p-2.5 rounded-xl border border-slate-700 bg-slate-800/70 hover:border-sky-400/60 hover:bg-slate-800 transition-all group cursor-pointer"
               data-role="Admin"
             >
-              <div class="text-xs font-semibold text-slate-800 group-hover:text-indigo-700">System Admin</div>
-              <div class="text-[10px] text-slate-500">Enterprise Admin</div>
+              <div class="text-xs font-bold text-white group-hover:text-sky-300">System Admin</div>
+              <div class="text-[10px] text-slate-400">Enterprise Director</div>
             </button>
 
             <button 
               type="button" 
-              class="demo-login col-span-2 text-left p-2.5 rounded-xl border border-orange-200 bg-orange-50/50 hover:bg-orange-100/70 transition-all group flex items-center justify-between"
+              class="demo-login col-span-2 text-left p-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 transition-all group flex items-center justify-between cursor-pointer"
               data-role="Customer"
             >
               <div>
-                <div class="text-xs font-semibold text-orange-900">Customer Client Portal</div>
-                <div class="text-[10px] text-orange-700">Acme Corporation (Quote #1001)</div>
+                <div class="text-xs font-bold text-amber-300">Customer Client Portal</div>
+                <div class="text-[10px] text-amber-400/80">Acme Corporation (Quote #1001)</div>
               </div>
-              <span class="text-xs text-orange-600 font-medium">Open Portal →</span>
+              <span class="text-xs text-amber-300 font-bold">Open Portal →</span>
             </button>
           </div>
         </div>
@@ -227,26 +227,43 @@ import Layout from '../Layout.astro';
 
           if (response.ok) {
             const data = await response.json();
+            // Check if user was assigned a custom role in all_users storage
+            try {
+              const allUsers = JSON.parse(localStorage.getItem('dealflow360_all_users') || '[]');
+              const matched = allUsers.find(u => u.email.toLowerCase() === data.user.email.toLowerCase());
+              if (matched && matched.role) {
+                data.user.role = matched.role;
+              }
+            } catch(e) {}
             loginUser(data.user);
             return;
           }
         } catch (err) {
-          console.warn('Backend unavailable, trying demo accounts');
+          console.warn('Backend unavailable, trying local accounts');
         }
 
-        // Check local demo match
-        const matchingUser = Object.values(demoUsers).find(u => u.email.toLowerCase() === email.toLowerCase());
-        const isCustomer = email.toLowerCase().includes('customer') || email.toLowerCase().includes('acme');
-        const validPassword = isCustomer ? 'customer123' : 'password123';
+        // Check local persisted users list (including any Admin-updated roles)
+        let savedUsers = [];
+        try {
+          savedUsers = JSON.parse(localStorage.getItem('dealflow360_all_users') || '[]');
+        } catch(e) {}
+        const persistentUser = savedUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-        if (matchingUser && (password === 'password123' || password === 'customer123')) {
-          loginUser(matchingUser);
-        } else if (password === validPassword) {
+        // Check preset demo match
+        const matchingDemoUser = Object.values(demoUsers).find(u => u.email.toLowerCase() === email.toLowerCase());
+
+        if (persistentUser) {
+          // Account registered or managed by admin - login with their actual assigned role
+          loginUser(persistentUser);
+        } else if (matchingDemoUser && (password === 'password123' || password === 'customer123')) {
+          loginUser(matchingDemoUser);
+        } else if (password.length >= 6) {
+          // New unregistered credentials fallback: MUST default to Customer (never Sales Rep or other internal roles)
           loginUser({
             id: Date.now(),
             name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
             email: email,
-            role: isCustomer ? 'Customer' : 'Sales Rep'
+            role: 'Customer' // Enforced Customer role
           });
         } else {
           showAlert('Invalid credentials. For demo accounts use password: password123 (or customer123 for customer)');

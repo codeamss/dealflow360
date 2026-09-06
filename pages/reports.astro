@@ -1,0 +1,22 @@
+---
+import Layout from '../Layout.astro';
+import DealHealthAndReports from '../components/DealHealthAndReports.jsx';
+---
+
+<Layout title="DealFlow360 - Multi-Dimensional Reports" activeModule="Reports">
+  <div class="space-y-6 max-w-[1500px] mx-auto">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Commercial Reporting Engine</h1>
+      <p class="text-slate-400 text-xs sm:text-sm mt-0.5">
+        Slice sales pipeline data by Period, Representative, Approval Status, and Product Category
+      </p>
+    </div>
+
+    <!-- Yellow Callout Box -->
+    <div class="excalidraw-callout">
+      Filtered reports aggregate committed contract value, average blended risk scores, and estimated gross margin with instant CSV ledger export.
+    </div>
+
+    <DealHealthAndReports client:load />
+  </div>
+</Layout>

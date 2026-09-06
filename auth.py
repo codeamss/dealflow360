@@ -29,6 +29,9 @@ class UserCreate(BaseModel):
     name: str
     email: str
     password: str
+    role: Optional[str] = "Customer"  # Enforced to "Customer" for all public registrations
+
+class RoleUpdateRequest(BaseModel):
     role: str  # "Sales Rep", "Sales Manager", "Finance", "Admin", "Customer"
 
 class UserLogin(BaseModel):
@@ -179,22 +182,18 @@ def setup_auth_routes(app: FastAPI):
     
     @app.post("/api/auth/register", response_model=Token)
     async def register(user_data: UserCreate):
-        """Register a new internal user."""
+        """Register a new user. Enterprise rule: All self-registered accounts are enrolled strictly as Customer."""
         # Check if user already exists
         for user in mock_users_db:
-            if user["email"] == user_data.email:
+            if user["email"].lower() == user_data.email.lower():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Email already registered"
                 )
         
-        # Validate role
-        valid_roles = ["Sales Rep", "Sales Manager", "Finance", "Admin", "Customer"]
-        if user_data.role not in valid_roles:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}"
-            )
+        # Enterprise governance: Self-registration strictly assigns "Customer" role.
+        # Internal roles (Sales Rep, Sales Manager, Finance, Admin) can only be granted by an Administrator.
+        assigned_role = "Customer"
         
         # Create new user
         new_user = {
@@ -202,7 +201,7 @@ def setup_auth_routes(app: FastAPI):
             "name": user_data.name,
             "email": user_data.email,
             "hashed_password": get_password_hash(user_data.password),
-            "role": user_data.role,
+            "role": assigned_role,
             "created_at": datetime.utcnow()
         }
         
@@ -336,3 +335,50 @@ def setup_auth_routes(app: FastAPI):
                 "password": "password123" if user["role"] != "Customer" else "customer123"
             })
         return demo_users
+
+    @app.get("/api/auth/users")
+    async def list_all_users():
+        """List all registered users with their assigned roles for Admin governance."""
+        users = []
+        for user in mock_users_db:
+            created_at_val = user.get("created_at")
+            if isinstance(created_at_val, datetime):
+                created_at_str = created_at_val.isoformat()
+            else:
+                created_at_str = str(created_at_val) if created_at_val else datetime.utcnow().isoformat()
+            users.append({
+                "id": user["id"],
+                "name": user["name"],
+                "email": user["email"],
+                "role": user["role"],
+                "created_at": created_at_str
+            })
+        return users
+
+    @app.put("/api/auth/users/{user_id}/role")
+    async def update_user_role(user_id: int, role_data: RoleUpdateRequest):
+        """Update a user's role. Enterprise governance: Only Administrators can grant internal roles."""
+        valid_roles = ["Sales Rep", "Sales Manager", "Finance", "Admin", "Customer"]
+        if role_data.role not in valid_roles:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid role '{role_data.role}'. Must be one of: {', '.join(valid_roles)}"
+            )
+
+        for user in mock_users_db:
+            if user["id"] == user_id:
+                old_role = user["role"]
+                user["role"] = role_data.role
+                return {
+                    "id": user["id"],
+                    "name": user["name"],
+                    "email": user["email"],
+                    "old_role": old_role,
+                    "role": user["role"],
+                    "message": f"Successfully updated {user['name']}'s role to {role_data.role}"
+                }
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with ID {user_id} not found"
+        )
